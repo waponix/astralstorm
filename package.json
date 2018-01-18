@@ -1,22 +1,22 @@
 {
-  "name": "App",
-  "version": "1.0.0",
-  "description": "",
+  "name": "astralstorm",
+  "version": "0.0.1",
+  "description": "A Space MOBA game built in NodeJS",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ericbermejoreyes/tvr.git"
+    "url": "git+https://github.com/ericbermejoreyes/astralstorm.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["astralstorm", "game", "moba", "p2", "html5"],
+  "author": "Eric Bermejo Reyes",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ericbermejoreyes/tvr/issues"
+    "url": "https://github.com/ericbermejoreyes/astralstorm/issues"
   },
-  "homepage": "https://github.com/ericbermejoreyes/tvr#readme",
+  "homepage": "https://github.com/ericbermejoreyes/astralstorm#readme",
   "dependencies": {
     "express": "^4.16.2",
     "p2": "^0.7.1",

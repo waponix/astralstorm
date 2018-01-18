@@ -51,12 +51,7 @@
 			controls.key = Object.assign(controls.key, {[$key]: e.type === 'keydown' ? true : false});
 			socket.emit('stream:input', {pid: streamInfo.pid, controls});
 		}).on('mousedown mouseup mousemove', (e) => {
-			if (e.type === 'mousemove')
-				controls.mouse.x = e.pageX;
-				controls.mouse.y = e.pageY;
-			else
-				controls.mouse[e.which] = e.type === 'mousedown' ? true :false;
-			socket.emit('stream:input', {pid: streamInfo.pid, controls});
+			
 		});
 	});
 
@@ -67,7 +62,7 @@
 			
 			fn.each(dataStream, (pid, data) => {
 				//if (pid === streamInfo.pid)
-					$view.getContext().fillStyle = "#ffffff";
+					$view.getContext().fillStyle = "#00ff00";
 					$view.getContext().fillRect(data.x, data.y, data.dimension.width, data.dimension.height);
 			});
 

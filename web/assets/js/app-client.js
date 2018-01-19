@@ -25,64 +25,43 @@
 			dataStream = data;
 		});
 
-		// var controls = {};
-		// $(window).on('keydown keyup', (e) => {
-		// 	controls.key = controls.key || {};
-		// 	let $key = String.fromCharCode(e.which || e.keyCode).toString().toUpperCase();
-		// 	controls.key = Object.assign(controls.key, {[$key]: e.type === 'keydown' ? true : false});
-		// 	socket.emit('stream:input', {pid: streamInfo.pid, controls});
-		// }).on('mousedown mouseup mousemove', (e) => {
+		var controls = {};
+		$(window).on('keydown keyup', (e) => {
+			controls.key = controls.key || {};
+			let $key = String.fromCharCode(e.which || e.keyCode).toString().toUpperCase();
+			controls.key = Object.assign(controls.key, {[$key]: e.type === 'keydown' ? true : false});
+			socket.emit('stream:input', {pid: streamInfo.pid, controls});
+		}).on('mousedown mouseup mousemove', (e) => {
 			
-		// });
+		});
 	});
 
-	// p2.js aliases
-	var world, boxBody, boxShape, planeBody, planeShape;
-	// pixi.js aliases
-	var renderer, stage, stage, graphics, sprite, zoom, container,
+	var world;
+	var app;
 
-	world = new p2.World();
-	boxShape = new p2.Box({width: 2, height: 1});
-	boxBody = new p2.Body({
-		mass: 1,
-		position: [0, 2]
+	world = new p2.World({gravity: [0, 0]});
+
+	app = new PIXI.Application({
+		width: $(window).width(),
+		height: $(window).height()
 	});
-	world.addBody(boxBody);
 
-	planeShape = new p2.Plane({mass: 1});
-    planeBody = new p2.Body({position: [0, 1], width: 600});
-    planeBody.addShape(planeShape);
-    world.addBody(planeBody);
+	var rect = new PIXI.Graphics();
+	rect.beginFill(0x00ff00);
+	rect.drawRect(0, 0, 20, 20);
 
-	zoom = 100;
+	app.stage.addChild(rect);
 
-	renderer = new PIXI.autoDetectRenderer(600, 400);
-	stage = new PIXI.Stage(0x000000);
-	container = new PIXI.DisplayObjectContainer();
-	stage.addChild(container);
+	document.body.appendChild(app.view);
 
-	document.body.appendChild(renderer.view);
-
-	container.position.x = renderer.width / 2;
-	container.position.y = renderer.height / 2;
-	container.scale.x = zoom;
-	container.scale.y = - zoom;
-
-	graphics = new PIXI.Graphics();
-	graphics.beginFill(0x00ff00);
-	graphics.drawRect(-boxShape.width / 2, -boxShape.height / 2, boxShape.width, boxShape.height);
-
-	container.addChild(graphics);
-
-	var gameStep = () => {	
+	var gameStep = () => {
 		if (dataStream)
-			world.step(1 / 60);
-
-			graphics.position.x = boxBody.position[0];
-			graphics.position.y = boxBody.position[1];
-			graphics.rotation = boxBody.angle;
-
-			renderer.render(stage);
+			fn.each(dataStream, (data) => {
+				rect.x = data.x;
+				rect.y = data.y;
+				rect.rotation = data.rotation;
+				console.log(data.controls.key);
+			});
 		window.requestAnimationFrame(gameStep);
 	}
 

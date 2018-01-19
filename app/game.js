@@ -10,18 +10,15 @@ module.exports = (($, $socket) => {
 	
 	$.io.on('connection', ($socket) => {
 		streams = streams || {};
-		players = players || {};
 		sockets = sockets || {};
 		
 		streams[$socket.id] = {sid: 'stream:'+$.genId(), pid: $socket.id};
-		players[$socket.id] = new player();
 		sockets[$socket.id] = $socket;
 		
 		$socket.emit('stream:info', streams[$socket.id]);
 
 		$socket.on('disconnect', () => {
 			delete streams[$socket.id];
-			delete players[$socket.id];
 			delete sockets[$socket.id];
 		});
 
@@ -34,7 +31,10 @@ module.exports = (($, $socket) => {
 
 	setInterval(() => {	
 		$.game.world.step(timestep);
-		
+		if (streams)
+			$.fn.each(streams, (pid, stream) => {
+				sockets[pid].emit(stream.sid, {});
+			});
 	}, 1000 * timestep);
 
 	function player() {

@@ -7,25 +7,6 @@
 		};
 		return fn;
 	})({});
-		
-
-	var $view = (() => {
-		var self = {};
-		var canvas = document.createElement('canvas');
-		canvas.id = 'game-view';
-
-		document.body.append(canvas);
-
-		self.getContext = () => {
-			return canvas.getContext('2d');
-		};
-
-		self.clear = () => {
-			self.getContext().clearRect(0, 0, canvas.width, canvas.height);
-		};
-
-		return self;
-	})();
 
 	var socket = io();
 
@@ -44,30 +25,41 @@
 			dataStream = data;
 		});
 
-		var controls = {};
-		$(window).on('keydown keyup', (e) => {
-			controls.key = controls.key || {};
-			let $key = String.fromCharCode(e.which || e.keyCode).toString().toUpperCase();
-			controls.key = Object.assign(controls.key, {[$key]: e.type === 'keydown' ? true : false});
-			socket.emit('stream:input', {pid: streamInfo.pid, controls});
-		}).on('mousedown mouseup mousemove', (e) => {
+		// var controls = {};
+		// $(window).on('keydown keyup', (e) => {
+		// 	controls.key = controls.key || {};
+		// 	let $key = String.fromCharCode(e.which || e.keyCode).toString().toUpperCase();
+		// 	controls.key = Object.assign(controls.key, {[$key]: e.type === 'keydown' ? true : false});
+		// 	socket.emit('stream:input', {pid: streamInfo.pid, controls});
+		// }).on('mousedown mouseup mousemove', (e) => {
 			
-		});
+		// });
 	});
 
-	var gameStep = () => {
-		if (dataStream)
-		
-			$view.clear();
-			
-			fn.each(dataStream, (pid, data) => {
-				//if (pid === streamInfo.pid)
-					$view.getContext().fillStyle = "#00ff00";
-					$view.getContext().fillRect(data.x, data.y, data.dimension.width, data.dimension.height);
-			});
+	var app = new PIXI.Application();
+	var loader = PIXI.loader;
+	var resources = loader.resources;
+	var sprite = PIXI.Sprite;
 
-		window.requestAnimationFrame(gameStep);
-	}
+	loader
+		.add([
+			'img/sprites/cat.png'
+		])
+		.load(() => {
+			var cat = new sprite(resources['img/sprites/cat.png'].texture);
+			cat.anchor.set(0.5, 0.5);
+			cat.position.set(cat.x + (cat.width / 2), cat.y + (cat.height / 2));
 
-	window.requestAnimationFrame(gameStep);
+			app.stage.addChild(cat);
+
+			var gameStep = () => {
+				if (dataStream)
+					
+				window.requestAnimationFrame(gameStep);
+			}
+
+			window.requestAnimationFrame(gameStep);
+		});
+
+	document.body.appendChild(app.view);
 })();

@@ -36,30 +36,55 @@
 		// });
 	});
 
-	var app = new PIXI.Application();
-	var loader = PIXI.loader;
-	var resources = loader.resources;
-	var sprite = PIXI.Sprite;
+	// p2.js aliases
+	var world, boxBody, boxShape, planeBody, planeShape;
+	// pixi.js aliases
+	var renderer, stage, stage, graphics, sprite, zoom, container,
 
-	loader
-		.add([
-			'img/sprites/cat.png'
-		])
-		.load(() => {
-			var cat = new sprite(resources['img/sprites/cat.png'].texture);
-			cat.anchor.set(0.5, 0.5);
-			cat.position.set(cat.x + (cat.width / 2), cat.y + (cat.height / 2));
+	world = new p2.World();
+	boxShape = new p2.Box({width: 2, height: 1});
+	boxBody = new p2.Body({
+		mass: 1,
+		position: [0, 2]
+	});
+	world.addBody(boxBody);
 
-			app.stage.addChild(cat);
+	planeShape = new p2.Plane({mass: 1});
+    planeBody = new p2.Body({position: [0, 1], width: 600});
+    planeBody.addShape(planeShape);
+    world.addBody(planeBody);
 
-			var gameStep = () => {
-				if (dataStream)
-					
-				window.requestAnimationFrame(gameStep);
-			}
+	zoom = 100;
 
-			window.requestAnimationFrame(gameStep);
-		});
+	renderer = new PIXI.autoDetectRenderer(600, 400);
+	stage = new PIXI.Stage(0x000000);
+	container = new PIXI.DisplayObjectContainer();
+	stage.addChild(container);
 
-	document.body.appendChild(app.view);
+	document.body.appendChild(renderer.view);
+
+	container.position.x = renderer.width / 2;
+	container.position.y = renderer.height / 2;
+	container.scale.x = zoom;
+	container.scale.y = - zoom;
+
+	graphics = new PIXI.Graphics();
+	graphics.beginFill(0x00ff00);
+	graphics.drawRect(-boxShape.width / 2, -boxShape.height / 2, boxShape.width, boxShape.height);
+
+	container.addChild(graphics);
+
+	var gameStep = () => {	
+		if (dataStream)
+			world.step(1 / 60);
+
+			graphics.position.x = boxBody.position[0];
+			graphics.position.y = boxBody.position[1];
+			graphics.rotation = boxBody.angle;
+
+			renderer.render(stage);
+		window.requestAnimationFrame(gameStep);
+	}
+
+	window.requestAnimationFrame(gameStep);
 })();

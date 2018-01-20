@@ -5,6 +5,8 @@ module.exports = (($) => {
 		var shape = new $.p2.Box({width: 0.1, height: 0.1});
 		body.addShape(shape);
 
+		this.width = shape.width;
+		this.height = shape.height;
 		this.x = body.position[0];
 		this.y = body.position[1];
 		this.rotation = body.angle;
@@ -22,12 +24,13 @@ module.exports = (($) => {
 		this.body = () => { return body; };
 
 		this.update = () => {
+			if (this.controls.key.D) body.position[0] += 2;
+			if (this.controls.key.A) body.position[0] -= 2;
+			if (this.controls.key.W) body.position[1] += 2;
+			if (this.controls.key.S) body.position[1] -= 2;
 
-			if (this.controls.key.D) body.position[0] += 1;
-			if (this.controls.key.A) body.position[0] -= 1;
-			if (this.controls.key.W) body.position[1] += 1;
-			if (this.controls.key.S) body.position[1] -= 1;
-
+			this.width = shape.width;
+			this.height = shape.height;
 			this.x = body.position[0];
 			this.y = body.position[1];
 			this.rotation = body.angle;

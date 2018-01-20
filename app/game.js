@@ -4,8 +4,9 @@ module.exports = (($, $socket) => {
 	var sockets = null;
 	var timestep = 1 / 60;
 
-	$.game = {
-		world: new $.p2.World({gravity: [0, 0]})
+	var game = {
+		world: new $.p2.World({gravity: [0, 0]}),
+		rid: 'room:'+$.genId()
 	};
 
 	var player = require('./objects/player')($);
@@ -15,11 +16,11 @@ module.exports = (($, $socket) => {
 		objects = objects || {};
 		sockets = sockets || {};
 		
-		streams[$socket.id] = {sid: 'stream:'+$.genId(), pid: $socket.id};
+		streams[$socket.id] = {sid: 'stream:'+$.genId(), rid: game.rid, pid: $socket.id};
 		objects[$socket.id] = new player();
 		sockets[$socket.id] = $socket;
 
-		$.game.world.addBody(objects[$socket.id].body());
+		game.world.addBody(objects[$socket.id].body());
 		
 		$socket.emit('stream:info', streams[$socket.id]);
 
@@ -37,7 +38,7 @@ module.exports = (($, $socket) => {
 	});
 
 	setInterval(() => {	
-		$.game.world.step(timestep);
+		game.world.step(timestep);
 		if (streams)
 			$.fn.update(objects);
 			$.fn.broadcast(streams, sockets, objects);

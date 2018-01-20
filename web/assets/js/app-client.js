@@ -4,23 +4,61 @@
 			for (var ai in array) {
 				callback.length > 1 ? callback(ai, array[ai]) : callback(array[ai]);
 			}
+			return fn;
 		};
+
+		fn.update = (dataStream, objects, stage) => {
+			fn.each(dataStream, (pid, stream) => {
+				objects = objects || {};
+				if (!objects[pid]) {
+					objects[pid] = {
+						pid: pid,
+						graphic: Graphic(stream)
+					}
+					stage.addChild(objects[pid].graphic);
+				}
+
+				objects[pid].graphic.x = stream.x;
+				objects[pid].graphic.y = stream.y;
+				objects[pid].graphic.rotation = stream.rotation;
+			}).each(objects, (pid, obj) => {
+				if (!dataStream[pid])
+					stage.removeChild(obj);
+					delete objects[pid];
+			});
+
+			return objects;
+		};
+
 		return fn;
 	})({});
+
+	function Graphic(stream) {
+		var graphic = new PIXI.Graphics();
+		graphic.beginFill(0x00ff00);
+		graphic.drawRect(stream.x, stream.y, 20, 20);
+
+		return graphic;
+	};
 
 	var socket = io();
 
 	var streamInfo = null;
 	var dataStream = null;
+	var objects = null;
 
 	var streamInfoWait = new Promise((res) => {
-		socket.on('stream:info', (i) => {
-			res(i);
-		});
+		socket.on('stream:info', (i) => res(i));
+	});
+
+	var app = new PIXI.Application({
+		width: $(window).width(),
+		height: $(window).height()
 	});
 
 	streamInfoWait.then((info) => {
 		streamInfo = info;
+		
 		socket.on(streamInfo.sid, (data) => {
 			dataStream = data;
 		});
@@ -36,32 +74,15 @@
 		});
 	});
 
-	var world;
-	var app;
-
-	world = new p2.World({gravity: [0, 0]});
-
-	app = new PIXI.Application({
-		width: $(window).width(),
-		height: $(window).height()
-	});
-
-	var rect = new PIXI.Graphics();
-	rect.beginFill(0x00ff00);
-	rect.drawRect(0, 0, 20, 20);
-
-	app.stage.addChild(rect);
+	app.stage.scale.x = 1;
+	app.stage.scale.y = 1;
 
 	document.body.appendChild(app.view);
 
 	var gameStep = () => {
 		if (dataStream)
-			fn.each(dataStream, (data) => {
-				rect.x = data.x;
-				rect.y = data.y;
-				rect.rotation = data.rotation;
-				console.log(data.controls.key);
-			});
+			objects = fn.update(dataStream, objects, app.stage);
+		console.log(objects);
 		window.requestAnimationFrame(gameStep);
 	}
 

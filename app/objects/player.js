@@ -2,7 +2,7 @@ module.exports = (($) => {
 
 	function player() {
 		var body = new $.p2.Body({mass: 10, position: [0, 0]});
-		var shape = new $.p2.Box({width: 0.1, height: 0.1});
+		var shape = new $.p2.Box({width: 20, height: 20});
 		body.addShape(shape);
 
 		this.width = shape.width;

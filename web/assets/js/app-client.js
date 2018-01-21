@@ -7,37 +7,15 @@
 			return fn;
 		};
 
-		fn.update = (dataStream, objects, stage) => {
-			fn.each(dataStream, (pid, stream) => {
-				objects = objects || {};
-				if (!objects[pid]) {
-					objects[pid] = {
-						pid: pid,
-						graphic: Graphic(stream)
-					}
-					stage.addChild(objects[pid].graphic);
-				}
-
-				objects[pid].graphic.x = stream.x;
-				objects[pid].graphic.y = stream.y;
-				objects[pid].graphic.rotation = stream.rotation;
-			}).each(objects, (pid, obj) => {
-				if (!dataStream[pid])
-					stage.removeChild(obj);
-					delete objects[pid];
-			});
-
-			return objects;
-		};
-
 		return fn;
 	})({});
 
 	function Graphic(stream) {
+		console.log(stream);
 		var graphic = new PIXI.Graphics();
 		graphic.beginFill(0x00ff00);
-		graphic.drawRect(stream.x, stream.y, 20, 20);
-
+		graphic.drawRect(stream.x, stream.y, stream.width, stream.height);
+		graphic.pivot.set = [10, 10];
 		return graphic;
 	};
 
@@ -52,8 +30,8 @@
 	});
 
 	var app = new PIXI.Application({
-		width: $(window).width(),
-		height: $(window).height()
+		width: 1320,
+		height: 600
 	});
 
 	streamInfoWait.then((info) => {
@@ -75,14 +53,28 @@
 	});
 
 	app.stage.scale.x = 1;
-	app.stage.scale.y = 1;
+	app.stage.scale.y = -1;
 
 	document.body.appendChild(app.view);
 
 	var gameStep = () => {
 		if (dataStream)
-			objects = fn.update(dataStream, objects, app.stage);
-		console.log(objects);
+			fn.each(dataStream, (pid, stream) => {
+				objects = objects || {};
+				if (!objects[pid]) {
+					objects[pid] = {pid: pid, graphic: Graphic(stream)};
+					app.stage.addChild(objects[pid].graphic);
+				} else {
+					objects[pid].graphic.x = stream.x;
+					objects[pid].graphic.y = stream.y;
+					objects[pid].graphic.rotation = stream.rotation;
+				}
+			});
+
+			fn.each(objects, (pid, object) => {
+				if (!dataStream[pid])
+					app.stage.removeChild(object.graphic);
+			});
 		window.requestAnimationFrame(gameStep);
 	}
 

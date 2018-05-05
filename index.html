@@ -1,0 +1,624 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Astral Defense</title>
+    <link href='https://fonts.googleapis.com/css?family=Orbitron' rel='stylesheet' type='text/css'>
+    <style>
+      *{
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        -ms-box-sizing: border-box;
+        -o-box-sizing: border-box;
+        position:relative;
+      }
+
+      body{
+        background: #000000;
+        overflow:hidden;
+        cursor:none;
+      }
+
+      canvas {
+        image-rendering: optimizeSpeed;             /* Older versions of FF          */
+        image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
+        image-rendering: -webkit-optimize-contrast; /* Safari                        */
+        image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
+        image-rendering: pixelated;                 /* Awesome future-browsers       */
+        -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
+      }
+
+      #infos{
+        position:fixed;
+        top:0;
+        left:0;
+      }
+
+    </style>
+  </head>
+  <body oncontextmenu="return false">
+    <canvas id="game-world"></canvas>
+    <canvas id="infos"></canvas>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="detect-zoom.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <script>
+      var socket = io();
+      var name = prompt('Enter your name: ').toUpperCase().substr(0, 10);
+      window.playerKey = name+Random(1000,1000000);
+      var device = detectZoom.device();
+
+      window.gameTime = {};
+      window.players = {};
+      window.fx = {};
+      window.ranking = [];
+
+      window.pointers = {};
+
+      window.target = null;
+
+      $(document).ready(function(initial){
+
+        document.onmousedown=disableclick;
+        status="Right Click Disabled";
+        function disableclick(event)
+        {
+          if(event.button==2)
+           {
+             return false;    
+           }
+        }
+
+        window.addEventListener("beforeunload", function (e) {
+            var confirmationMessage = 'Are you sure you want to leave?';
+
+            (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+            return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+        });
+        
+        /*GAME VARIABLES*/
+        var game = document.getElementById('game-world');
+        var infos = document.getElementById('infos');
+
+        game.width = 10000;
+        game.height = 10000;
+
+        infos.width = $(window).width();
+        infos.height = $(window).height();
+
+        $(window).resize(function(){
+          infos.width = $(window).width();
+          infos.height = $(window).height();
+        });
+
+        game.context = game.getContext('2d');
+        infos.context = infos.getContext('2d');
+
+        /*GAME FUNCTIONS*/
+        game.draw = function(x, y, w, h, fillStyle, lineWidth, strokeStyle){
+          if(fillStyle){ 
+            game.context.fillStyle = fillStyle; 
+            game.context.fillRect(x, y, w, h);
+          }
+          if(strokeStyle && lineWidth){
+            game.context.strokeStyle = strokeStyle;
+            game.context.lineWidth = lineWidth;
+            game.context.strokeRect(x, y, w, h);
+          }
+        }
+
+        game.drawImg = function(x, y, w, h, path, opacity, rotation){
+          if(opacity){ game.context.globalAlpha = opacity; }
+          var img = new Image();
+          img.src = path;
+
+          img.onload = function(){
+            game.context.save();
+            game.context.translate(x, y);
+            game.context.rotate(rotation * Math.PI / 180);
+            game.context.drawImage(0 - (w / 2), 0 - (h / 2), w, h);
+            game.context.globalAlpha = 1;
+          }
+
+          game.context.restore();
+        }
+
+        game.write = function(text, x, y, font, fillStyle){
+
+          if(text && fillStyle && font){
+            game.context.fillStyle = fillStyle;
+            game.context.font = font;
+            game.context.fillText(text, x, y);
+          }
+        }
+
+        game.clear = function(){ game.context.clearRect(0, 0, game.width, game.height); }
+
+        infos.draw = function(x, y, w, h, fillStyle, lineWidth, strokeStyle){
+          if(fillStyle){ 
+            infos.context.fillStyle = fillStyle; 
+            infos.context.fillRect(x, y, w, h);
+          }
+          if(strokeStyle && lineWidth){
+            infos.context.strokeStyle = strokeStyle;
+            infos.context.lineWidth = lineWidth;
+            infos.context.strokeRect(x, y, w, h);
+          }
+        }
+
+        infos.write = function(text, x, y, font, fillStyle){
+
+          if(text && fillStyle && font){
+            infos.context.fillStyle = fillStyle;
+            infos.context.font = font;
+            infos.context.fillText(text, x, y);
+          }
+        }
+
+        infos.clear = function(){ infos.context.clearRect(0, 0, infos.width, infos.height); }
+
+        game.update = 10;
+        infos.update = 1;
+
+        if(name){
+          socket.emit('addPlayer', {key: window.playerKey});
+          socket.emit('input', { key: window.playerKey, appendKey: 'name', value: name });
+        }
+
+        socket.on('updateTime', function(data){ window.gameTime = data; });
+        socket.on('update', function(data){ window.players = data; });
+        socket.on('updateFX', function(data){ window.fx = data; });
+        socket.on('updatePointers', function(data){ window.pointers = data; });
+        socket.on('updateRanking', function(data){ window.ranking = data; });
+
+        window.mouseX = initial.pageX;
+        window.mouseY = initial.pageY;
+        window.offset = {};
+
+        var mX = 0;
+        var mY = 0;
+
+        $(window).mousedown(function(e){
+
+          if(!window.players[window.playerKey].destroyed){
+            if(e.which === 1){ 
+              socket.emit('input', { key: window.playerKey, appendKey: 'fire', value: true }); 
+              socket.emit('input', { key: window.playerKey, appendKey: 'reload', value: false }); 
+            }//fire bullet;
+
+            if(e.which === 3){ 
+              socket.emit('input', { key: window.playerKey, appendKey: 'fireRocket', value: true }); 
+              socket.emit('input', { key: window.playerKey, appendKey: 'target', value: window.target }); 
+            }//fire rocket;
+          }
+
+        }).mouseup(function(e){
+
+
+          if(!window.players[window.playerKey].destroyed){
+            if(e.which === 1){ 
+              socket.emit('input', { key: window.playerKey, appendKey: 'fire', value: false });
+              socket.emit('input', { key: window.playerKey, appendKey: 'reload', value: true }); 
+            }//fire bullet;
+
+            if(e.which === 3){ 
+              socket.emit('input', { key: window.playerKey, appendKey: 'fireRocket', value: false });
+              socket.emit('input', { key: window.playerKey, appendKey: 'rTrigger', value: true }); 
+            }//fire rocket;
+          }
+
+
+        }).scroll(function(){
+
+          device = detectZoom.device();
+          if(device < 1 || device > 1){
+            alert('Warning! Zooming will destroy the layout of this display.');
+            device = 50;
+          }
+
+          $('canvas').css({zoom: device});
+        
+
+        });
+
+        $('#infos').on('mousemove', function(e){
+
+          window.mouseX = e.pageX;
+          window.mouseY = e.pageY;
+
+          mX = window.mouseX - $('#infos').offset().left;
+          mY = window.mouseY - $('#infos').offset().top;
+        
+        });
+
+        var test = 0;
+
+        setInterval(function(){
+        
+
+          if(!window.players[window.playerKey].destroyed){
+
+            var nX = $('#infos').offset().left;
+            var nY = $('#infos').offset().top;
+            var mNX = nX + mX;
+            var mNY = nY + mY;
+
+            socket.emit('input', {key: window.playerKey, appendKey: 'mouseX', value: mNX});
+            socket.emit('input', {key: window.playerKey, appendKey: 'mouseY', value: mNY});
+
+            infos.clear();
+
+            $.each(window.pointers, function(key, data){
+
+              if(!window.players[window.playerKey].destroyed && data.origin == window.playerKey && data.show){
+                infos.context.save();
+                infos.context.translate(data.x, data.y);
+                infos.context.fillStyle = "rgba(255, 84, 0, "+data.opacity+")";
+                infos.context.rotate(data.direction * Math.PI / 180);
+                infos.context.beginPath();
+                infos.context.moveTo(0 - 2.5, 0 - (7.5 / 2));
+                infos.context.lineTo(30 - 2.5, 7.5 - (7.5 / 2));
+                infos.context.lineTo(0 - 2.5, 15 - (7.5 / 2));
+                infos.context.lineTo(5 - 2.5, 7.5 - (7.5 / 2));
+                infos.context.closePath()
+                infos.context.fill();
+                infos.context.restore();
+              }
+
+            });
+
+            infos.draw(50, 60, window.players[window.playerKey].bLoad , 5, window.players[window.playerKey].bRGBA);
+            infos.draw(50, 60, 300 , 5, false, 1, window.players[window.playerKey].bColor);
+
+            for(var i = 0; i < 5; i++){
+              var rColor = '';
+              if(i < window.players[window.playerKey].rLoad){
+                rColor = '#a800ff';
+              }else{ rColor = '#555'; }
+              infos.context.save();
+              infos.context.translate(50.5 + (i * 10), 77.5);
+              infos.context.scale(1, 0.7);
+              infos.context.rotate(-90 * Math.PI / 180);
+              infos.context.fillStyle = rColor;
+              infos.context.beginPath();
+              var drwx = 0 - 10;
+              var drwy = 0 - 2.5;
+              infos.context.moveTo(drwx, drwy);
+              infos.context.lineTo(drwx+=2.5, drwy);
+              infos.context.lineTo(drwx, drwy+=2.5);
+              infos.context.lineTo(drwx+=2, drwy);
+              infos.context.lineTo(drwx, drwy-=2);
+              infos.context.lineTo(drwx+=15, drwy);
+              infos.context.lineTo(drwx+=2.5, drwy+=2.5);
+              infos.context.lineTo(drwx-=2.5, drwy+=2.5);
+              infos.context.lineTo(drwx-=15, drwy);
+              infos.context.lineTo(drwx, drwy-=2);
+              infos.context.lineTo(drwx-=2, drwy);
+              infos.context.lineTo(drwx, drwy+=2.5);
+              infos.context.lineTo(drwx-=2.5, drwy);
+              infos.context.lineTo(drwx+=0.5, drwy-=2.5);
+              infos.context.closePath();
+              infos.context.fill();
+              infos.context.restore();
+            }
+
+            var healthBar = (window.players[window.playerKey].health / 100) * 600;
+            infos.draw(50, 50, healthBar, 5, 'rgba(0, 255, 0, 0.5)');
+            infos.draw(50, 50, 600 , 5, false, 1, '#0f0');
+
+            infos.write('ENEMY DESTROYED: ' + window.players[window.playerKey].score.toString() , infos.width - 300, 60, '14px Orbitron', '#fff');
+            infos.write('- This game is under development and for educational purpose only - ', 50, infos.height - 50, '16px Calibri', '#555');
+
+            var incY = 0;
+            var rankSize = [15, 13, 11, 9, 7];
+            var rankOpac = [1, 0.8, 0.6, 0.4, 0.2];
+            infos.write('RANKINGS---------------', infos.width - 300, 80, '15px Orbitron', 'rgba(255,255,255,0.5)');
+            $.each(window.ranking, function(key, data){
+
+              if(key < 5){
+                infos.write('#'+(key + 1) + ' ' + data.name + ':  ' + data.score, infos.width - 300 + incY + 20, 100 + incY, rankSize[key]+'px Orbitron', 'rgba(255,255,255,'+rankOpac[key]+')');
+                incY += 20;
+              }
+
+            });
+
+            var mouseObj = {
+              collide: {
+                x: window.players[window.playerKey].mouseX,
+                y: window.players[window.playerKey].mouseY,
+                radius: 55
+                }
+              }
+            var collide = Collide(mouseObj, window.players, window.playerKey);
+            var mColor = 'rgba(255,255,255,0.5)';
+
+            if(collide.result){
+              mColor = 'rgba(255,0,0,1)';
+              window.target = collide.key;
+              
+            }else{
+              window.target = null;
+            }
+
+            infos.draw(mX - 10, mY, 20, 1, mColor);
+            infos.draw(mX, mY - 10, 1, 20, mColor);
+            infos.draw(mX-15, mY-15, 10, 1, mColor);
+            infos.draw(mX+5, mY+ 15, 10, 1, mColor);
+            infos.draw(mX+5, mY-15, 10, 1, mColor);
+            infos.draw(mX-15, mY+15, 10, 1, mColor);
+            infos.draw(mX-15, mY-15, 1, 10, mColor);
+            infos.draw(mX+15, mY+ 5, 1, 10, mColor);
+            infos.draw(mX+15, mY-15, 1, 10, mColor);
+            infos.draw(mX-15, mY+5, 1, 10, mColor);
+            infos.context.strokeStyle = mColor;
+            infos.context.beginPath();
+            infos.context.lineWidth = 1;
+            infos.context.arc(mX + 0.5, mY + 0.5, 5, 0, 2 * Math.PI);
+            infos.context.stroke();
+
+          }else{
+            
+            infos.clear();
+            infos.draw(0, 0, infos.width, infos.height, 'rgba(0,0,0,0.5)');
+            var message = 'RESPAWN IN';
+            var countdown = window.players[window.playerKey].countdown.toString();
+            infos.write(message , ((infos.width / 2) - (infos.context.measureText(message).width / 2)), (infos.height / 2) - 30, '14px Orbitron', '#fff');
+            infos.write(countdown , ((infos.width / 2) - (infos.context.measureText(countdown).width / 2)), infos.height / 2, '25px Orbitron', '#fff');
+
+          }
+          
+
+          
+
+        }, infos.update);
+
+        /*DISPLAY MANAGEMENT*/
+        setInterval(function(){
+
+          socket.emit('input', {key: window.playerKey, appendKey: 'viewPort', value: {width: infos.width, height: infos.height, top: $('#infos').offset().top, left: $('#infos').offset().left} });
+
+          game.clear();
+
+          /*DRAW BACKGROUND*/
+          for(var gw = 0; gw <= game.width; gw += 65){
+            game.draw(gw, 0, 1, game.height, '#1f1f1f');
+          }for(var gh = 0; gh <= game.width; gh += 65){
+            game.draw(0, gh, game.width, 1, '#1f1f1f');
+          }
+
+
+
+         $.each(window.players, function(pKey, data){
+
+            $.each(data.bullet, function(bKey, blts){
+              /*game.context.strokeStyle = blts.color;
+              game.context.beginPath();
+              game.context.lineWidth = 2;
+              game.context.arc(blts.x, blts.y, 3, 0, 2 * Math.PI);
+              game.context.stroke();*/
+
+              game.context.save();
+              game.context.translate(blts.x, blts.y);
+              game.context.rotate(blts.direction * Math.PI / 180);
+              var grd = game.context.createLinearGradient(-45, 0, 50, 0);
+              grd.addColorStop(0, 'rgba(0, 255, 255, 0)');
+              grd.addColorStop(1, 'rgba(0,255,255,1)');
+              game.context.fillStyle = grd;
+              game.context.fillRect(0-15, 0-2.5, 30, 5);
+              game.context.fillStyle = 'rgba(0,255,255,1)';
+              game.context.beginPath();
+              game.context.arc(15, 0, 2.5, 0, 2 * Math.PI);
+              game.context.closePath();
+              game.context.fill();
+              game.context.restore();
+              /*game.draw(blts.x, blts.y, blts.w, blts.h, "#55ffff");*/
+            });
+
+            $.each(data.rocket, function(bKey, rckt){
+              /*game.context.strokeStyle = rckt.color;
+              game.context.beginPath();
+              game.context.lineWidth = 2;
+              game.context.arc(rckt.x, rckt.y, 3, 0, 2 * Math.PI);
+              game.context.stroke();*/
+
+              game.context.save();
+              game.context.translate(rckt.x, rckt.y);
+              game.context.rotate(rckt.direction * Math.PI / 180);
+              game.context.fillStyle = rckt.color;
+              game.context.beginPath();
+              drwx = 0 - 10;
+              drwy = 0 - 2.5;
+              game.context.moveTo(drwx, drwy);
+              game.context.lineTo(drwx+=2.5, drwy);
+              game.context.lineTo(drwx, drwy+=2.5);
+              game.context.lineTo(drwx+=2, drwy);
+              game.context.lineTo(drwx, drwy-=2);
+              game.context.lineTo(drwx+=15, drwy);
+              game.context.lineTo(drwx+=2.5, drwy+=2.5);
+              game.context.lineTo(drwx-=2.5, drwy+=2.5);
+              game.context.lineTo(drwx-=15, drwy);
+              game.context.lineTo(drwx, drwy-=2);
+              game.context.lineTo(drwx-=2, drwy);
+              game.context.lineTo(drwx, drwy+=2.5);
+              game.context.lineTo(drwx-=2.5, drwy);
+              game.context.lineTo(drwx+=0.5, drwy-=2.5);
+              game.context.closePath();
+              game.context.fill();
+              game.context.restore();
+              /*game.draw(rckt.x, rckt.y, rckt.w, rckt.h, "#55ffff");*/
+            });
+
+            if(!data.destroyed){
+
+              /*game.draw((0 - (data.w / 2)), (0 - (data.h / 2)), 20, 10, data.color);
+              game.draw((0 - (data.w / 2)) + 20, (0 - (data.h / 2)) + 2.5, 2, 5, data.color);
+              game.draw((0 - (data.w / 2)) + 20, (0 - (data.h / 2)) + 4, 7, 2, data.color);
+              game.draw((0 - (data.w / 2)) - 5, (0 - (data.h / 2)) - 8, data.w - 5, 3, data.color);
+              game.draw((0 - (data.w / 2)) - 5, (0 - (data.h / 2)) - 5, data.w + 10, 1, data.color);
+              game.draw((0 - (data.w / 2)) - 5, (0 - (data.h / 2)) + 15, data.w - 5, 3, data.color);
+              game.draw((0 - (data.w / 2)) - 5, (0 - (data.h / 2)) + 14, data.w + 10, 1, data.color);*/
+              game.context.save();
+              game.context.translate(data.x, data.y);
+              game.context.rotate(data.rotation * Math.PI / 180);
+              var drwx = 0 - 20;
+              var drwy = 0 - 20;
+              game.context.fillStyle = data.color;
+              game.context.beginPath();
+              game.context.moveTo(drwx,drwy+=20);
+              game.context.lineTo(drwx+=5, drwy-=5);
+              game.context.lineTo(drwx+=5, drwy);
+              game.context.lineTo(drwx, drwy-=3);
+              game.context.lineTo(drwx-=10, drwy);
+              game.context.lineTo(drwx, drwy-=2);
+              game.context.lineTo(drwx+=5, drwy);
+              game.context.lineTo(drwx+=5, drwy-=10);
+              game.context.lineTo(drwx+=10, drwy);
+              game.context.lineTo(drwx+=5, drwy+=5);
+              game.context.lineTo(drwx+=10, drwy);
+              game.context.lineTo(drwx+=5, drwy+=7);
+              game.context.lineTo(drwx-=20, drwy);
+              game.context.lineTo(drwx, drwy+=3);
+              game.context.lineTo(drwx+=10, drwy);
+              game.context.lineTo(drwx+=5, drwy+=5);
+              game.context.lineTo(drwx-=5, drwy+=5);
+              game.context.lineTo(drwx-=10, drwy);
+              game.context.lineTo(drwx, drwy+=3);
+              game.context.lineTo(drwx+=20, drwy);
+              game.context.lineTo(drwx-=5, drwy+=7);
+              game.context.lineTo(drwx-=10, drwy);
+              game.context.lineTo(drwx-=5, drwy+=5);
+              game.context.lineTo(drwx-=10, drwy);
+              game.context.lineTo(drwx-=5, drwy-=10);
+              game.context.lineTo(drwx-=5, drwy);
+              game.context.lineTo(drwx, drwy-=2);
+              game.context.lineTo(drwx+=10, drwy);
+              game.context.lineTo(drwx, drwy-=3);
+              game.context.lineTo(drwx-=5, drwy);
+              game.context.closePath();
+              game.context.fill();
+              game.context.globalCompositeOperation = "xor";
+              drwx = 0 - 20;
+              drwy = 0 - 20;
+              game.context.beginPath();
+              game.context.moveTo(drwx+=11.5, drwy+=2);
+              game.context.lineTo(drwx+=3, drwy);
+              game.context.lineTo(drwx+=2, drwy+=7);
+              game.context.lineTo(drwx-=9, drwy);
+              game.context.closePath();
+              game.context.fill();
+              game.context.globalCompositeOperation = "xor";
+              drwx = 0 - 20;
+              drwy = 0 - 20;
+              game.context.beginPath();
+              game.context.moveTo(drwx+=8, drwy+=30);
+              game.context.lineTo(drwx+=9, drwy);
+              game.context.lineTo(drwx-=2.5, drwy+=8);
+              game.context.lineTo(drwx-=3, drwy);
+              game.context.closePath();
+              game.context.fill();
+              game.context.globalCompositeOperation = "xor";
+              drwx = 0 - 20;
+              drwy = 0 - 20;
+              game.context.beginPath();
+              game.context.moveTo(drwx+=15, drwy+=17);
+              game.context.lineTo(drwx+=14, drwy);
+              game.context.lineTo(drwx+=4, drwy+=3);
+              game.context.lineTo(drwx-=3, drwy+=3);
+              game.context.lineTo(drwx-=15, drwy);
+              game.context.lineTo(drwx-=3, drwy-=3);
+              game.context.closePath();
+              game.context.fill();
+              game.context.restore();
+
+              /*game.drawImg(data.x, data.y - 150, 30, 20, 'pointer.svg');*/
+              
+              var rankColor = null;
+              if(data.rank == 1){ rankColor = 'rgba(246,255,0,1)'; }
+              else if(data.rank <= 3){ rankColor = 'rgba(0,255,6,0.95)'; }
+              else if(data.rank <= 6){ rankColor = 'rgba(0,255,252,0.8)'; }
+              else if(data.rank <= 10){ rankColor = 'rgba(255,132,0,0.65)'; }
+              else if(data.rank <= 20){ rankColor = 'rgba(255,36,0,0.5)'; }
+
+              game.write(data.name, data.x + 10, data.y - 55, '10px Orbitron', '#fff');
+              game.write('R-'+((data.rank <= 9) ? '0' : '')+data.rank, data.x + game.context.measureText(data.name).width, data.y - 35, 'bolder 14px Orbitron', rankColor);
+              game.context.strokeStyle = 'rgba(255,255,255,0.3)';
+              game.context.lineWidth = 1;
+              game.context.beginPath();
+              game.context.moveTo(data.x, data.y - 30);
+              game.context.lineTo(data.x + 15, data.y - 50);
+              game.context.lineTo(data.x + game.context.measureText(data.name).width + 10, data.y - 50);
+              game.context.lineTo(data.x + 15, data.y - 50);
+              game.context.closePath();
+              game.context.stroke();
+            
+            }
+
+            if(!data.explotion.hidden && data.destroyed){
+              game.context.strokeStyle = data.explotion.color;
+              game.context.beginPath();
+              game.context.lineWidth = data.explotion.border;
+              game.context.arc(data.explotion.x, data.explotion.y, data.explotion.radius, 0, 2 * Math.PI);
+              game.context.stroke();
+            }
+ 
+            if(pKey === window.playerKey){
+            
+              $('body').scrollTop(data.y - ($(window).height() / 2 - data.h)).scrollLeft((data.x - ($(window).width() / 2 - data.w)));
+            
+            }
+
+          });
+
+        $.each(window.fx.hit, function(key, data){
+
+          game.context.strokeStyle = data.color;
+          game.context.beginPath();
+          game.context.lineWidth = data.border;
+          game.context.arc(data.x, data.y, data.radius, 0, 2 * Math.PI);
+          game.context.stroke();
+
+        });
+
+        },game.update);
+
+      });
+
+      /*FUNCTIONS*/
+      function Random(min, max){
+        return Math.floor((Math.random() * max) + min);
+      }
+
+      function Collide(obj1, obj2, filter){
+
+        var result = {};
+        result.result = false;
+        var keys = Object.keys(obj2);
+
+        for(var i = 0; i < keys.length; i++){
+          var key = keys[i];
+          var col1 = obj1.collide;
+          var col2 = obj2[key].collide;
+
+          var dx = col1.x - col2.x;
+          var dy = col1.y - col2.y;
+          var distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (key != filter && distance < col1.radius + col2.radius) {
+              result.key = key;
+              result.x = col1.x;
+              result.y = col2.y;
+              result.result = true;
+          }
+        }
+
+        return result;
+
+      }
+
+  
+    </script>
+  </body>
+</html>

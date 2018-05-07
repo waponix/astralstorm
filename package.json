@@ -1,15 +1,16 @@
 {
-  "name": "astral-defense",
+  "name": "astral-storm",
   "version": "0.0.1",
   "description": "Prepare to defend your Mothership!",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Eric Bermejo Reyes",
+  "author": "Eric Bermejo Reyes | eric.bermejo.reyes@gmail.com",
   "license": "UNLICENSED",
   "dependencies": {
     "express": "^4.10.2",
-    "socket.io": "^1.4.8"
+    "socket.io": "^1.4.8",
+    "uuid": "^3.2.1"
   }
 }

@@ -42,19 +42,19 @@ let client = {};
                     $c.controls.mouse.cY = e.clientY;
                     break;
                 case 'mousedown':
-                    $c.controls.mouse[mouseButton[e.which - 1]] = true;
-                    break;
+                    $c.controls.mouse[mouseButton[e.which - 1]] = true; break;
                 case 'mouseup':
-                    delete $c.controls.mouse[mouseButton[e.which - 1]];
-                    break;
+                    delete $c.controls.mouse[mouseButton[e.which - 1]]; break;
             }
         }
 
         function activeEvent() {
-            activity = true;
-            setTimeout(function () {
-                activity = false;
-            }, 1000);
+            if (!activity) {
+                activity = true;
+                setTimeout(function () {
+                    activity = false;
+                }, 5000);
+            }
         }
     };
 

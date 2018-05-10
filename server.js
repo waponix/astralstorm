@@ -28,7 +28,7 @@ let server = {};
     $s.step = function () {
         $s.world.elapse = Date.now() - startTime;
         update($s.world);
-        $s.io.emit('dataStream', $s.world);
+        $s.io.emit('dataStream', minifyWorld($s.world));
     };
 
     $s.http.listen(port, function () {
@@ -51,7 +51,7 @@ let server = {};
                 delete $s.world[this.id];
             })
             .on('input', function (controls) {
-                if ($s.world[this.id]) $s.world[this.id].controls = controls;
+                if ($s.world[this.id]) Object.assign($s.world[this.id].controls, controls);
             })
             .on('tick', function (dt) {
                 if ($s.world[this.id]) $s.world[this.id].dt = dt;
@@ -64,8 +64,18 @@ let server = {};
         }
     }
 
-    function prepareForClient() {
-
+    function minifyWorld() {
+        let hash = require('shorthash');
+        let world = JSON.parse(JSON.stringify($s.world));
+        for (let i in world) {
+            if (world[i].controls) {
+                delete world[i].controls;
+                delete world[i].dt;
+                world[hash.unique(i)] = world[i];
+                delete world[i];
+            }
+        }
+        return world;
     }
 
     global.createInstance = function (objectName, config, key) {

@@ -10,7 +10,6 @@ let client = {};
     let activity = false;
 
     $c.io = io();
-    $c.app = new PIXI.Application();
 
     /*Player input listeners*/
     $c.inputListeners = function () {
@@ -63,6 +62,27 @@ let client = {};
 
     /*The game step*/
     let lastTick = Date.now();
+    $c.init = function () {
+        this.inputListeners();
+        $c.io.once('init', function (data) {
+            $c.id = data.id;
+            $c.app = new PIXI.Application({width: data.world.view.width, height: data.world.view.height});
+            viewport();
+        });
+        PIXI.loader.add('avatar01', 'sprites/avatar_01.svg').load((loader, resources) => {
+            player = new PIXI.Sprite(resources.avatar01.texture);
+            player.x = 100;
+            player.y = 100;
+            player.anchor.x = 0.5;
+            player.anchor.y = 0.5;
+
+            console.log(player);
+
+            $c.app.stage.addChild(player);
+        });
+        window.requestAnimationFrame($c.step);
+    };
+
     $c.step = function (tick) {
         tick = Date.now();
         let delta = (tick - lastTick) / 1000;
@@ -71,25 +91,15 @@ let client = {};
             if (activity) $c.io.emit('input', $c.controls);
             $c.io.emit('tick', delta);
             $c.dataStream = dataStream();
-        });
-
-        window.requestAnimationFrame($c.step);
-    };
-
-    $c.init = function () {
-        this.inputListeners();
-        $c.io.once('pkey', function (pkey) {
-            $c.pkey = pkey;
-        });
-        viewport();
-        PIXI.loader.add('avatar01', 'sprites/avatar_01.svg').load((loader, resources) => {
-            const player = new PIXI.Sprite(resources.avatar01.texture);
-            player.x = 100;
-            player.y = 100;
-            player.anchor.x = 0.5;
-            player.anchor.y = 0.5;
-
-            $c.app.stage.addChild(player);
+            for (let i in $data) {
+                if ($c.id) {
+                    if ($data[i].id === $c.id) {
+                        player.x = $data[i].x;
+                        player.y = $data[i].y;
+                    }
+                }
+            }
+            dataPreviewer.text(JSON.stringify($data, null, 2));
         });
         window.requestAnimationFrame($c.step);
     };

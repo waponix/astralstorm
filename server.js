@@ -6,8 +6,8 @@
 let server = {};
 
 (function ($s) {
-    let port = 3000;
     let gameStep = 16 / 1000;
+    let config = require('./lib/config');
 
     $s.express = require('express');
     $s.app = $s.express();
@@ -19,14 +19,6 @@ let server = {};
         Player: require('./lib/objects/Player'),
         Bullet: require('./lib/objects/Bullet')
     };
-    $s.world = {
-        width: 10000,
-        height: 10000,
-        viewport: {
-            width: 600,
-            height: 400
-        }
-    };
 
     let startTime = Date.now();
     $s.step = function () {
@@ -35,10 +27,8 @@ let server = {};
         $s.io.emit('dataStream', minifyWorld($s.world));
     };
 
-    $s.http.listen(port, function () {
-        console.log('$server running at 3000');
-
-        setInterval($s.step, gameStep);
+    $s.http.listen(config.port, function () {
+        init();
     });
 
     $s.app
@@ -50,7 +40,10 @@ let server = {};
     $s.io.on('connect', function ($c) {
         createInstance('Player', null, $c.id);
 
-        $c.emit('pkey', $s.world[$c.id].id);
+        $c.emit('init', {
+            id: $s.world[$c.id].id,
+            world: config.world
+        });
 
         $c
             .once('disconnect', function () {
@@ -63,6 +56,12 @@ let server = {};
                 if ($s.world[this.id]) $s.world[this.id].dt = dt;
             });
     });
+
+    function init() {
+        console.log('$server running at 3000');
+        $s.world = config.world;
+        setInterval($s.step, gameStep);
+    }
 
     function update(obj) {
         for (let i in obj) {

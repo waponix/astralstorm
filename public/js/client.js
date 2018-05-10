@@ -10,6 +10,7 @@ let client = {};
     let activity = false;
 
     $c.io = io();
+    $c.app = new PIXI.Application();
 
     /*Player input listeners*/
     $c.inputListeners = function () {
@@ -67,9 +68,6 @@ let client = {};
         let delta = (tick - lastTick) / 1000;
         lastTick = tick;
         $c.dataStream.then(function ($data) {
-
-            dataPreviewer.text(JSON.stringify($data, null, 2));
-
             if (activity) $c.io.emit('input', $c.controls);
             $c.io.emit('tick', delta);
             $c.dataStream = dataStream();
@@ -80,18 +78,33 @@ let client = {};
 
     $c.init = function () {
         this.inputListeners();
+        $c.io.once('pkey', function (pkey) {
+            $c.pkey = pkey;
+        });
+        viewport();
+        PIXI.loader.add('avatar01', 'sprites/avatar_01.svg').load((loader, resources) => {
+            const player = new PIXI.Sprite(resources.avatar01.texture);
+            player.x = 100;
+            player.y = 100;
+            player.anchor.x = 0.5;
+            player.anchor.y = 0.5;
+
+            $c.app.stage.addChild(player);
+        });
         window.requestAnimationFrame($c.step);
     };
 
-    function dataStream()
-    {
+    function dataStream() {
         return new Promise(function (res) {
             $c.io.once('dataStream', function ($data) {
                 res($data);
             });
         });
     }
-}(client));
 
+    function viewport() {
+        document.body.appendChild($c.app.view);
+    }
+}(client));
 
 client.init();

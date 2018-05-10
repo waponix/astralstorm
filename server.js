@@ -21,7 +21,11 @@ let server = {};
     };
     $s.world = {
         width: 10000,
-        height: 10000
+        height: 10000,
+        viewport: {
+            width: 600,
+            height: 400
+        }
     };
 
     let startTime = Date.now();
@@ -46,6 +50,8 @@ let server = {};
     $s.io.on('connect', function ($c) {
         createInstance('Player', null, $c.id);
 
+        $c.emit('pkey', $s.world[$c.id].id);
+
         $c
             .once('disconnect', function () {
                 delete $s.world[this.id];
@@ -65,12 +71,25 @@ let server = {};
     }
 
     function minifyWorld() {
+        let preserve = [
+            'id',
+            'instanceOf',
+            'x',
+            'y',
+            'width',
+            'height',
+            'rotation',
+            'scale'
+        ];
         let hash = require('shorthash');
         let world = JSON.parse(JSON.stringify($s.world));
         for (let i in world) {
-            if (world[i].controls) {
-                delete world[i].controls;
-                delete world[i].dt;
+            if (world[i].instanceOf) {
+                for (let pi in world[i]) {
+                    if (preserve.indexOf(pi) < 0) {
+                        delete world[i][pi];
+                    }
+                }
                 world[hash.unique(i)] = world[i];
                 delete world[i];
             }
@@ -84,6 +103,8 @@ let server = {};
         } else {
             $s.world[Date.now()] = new $s.obj[objectName](config);
         }
+
+        return true;
     }
 
     global.destroy = function (obj) {

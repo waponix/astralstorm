@@ -61,7 +61,6 @@ let client = {};
     $c.dataStream = dataStream();
 
     /*The game step*/
-    let lastTick = Date.now();
     $c.init = function () {
         this.inputListeners();
         $c.io.once('init', function (data) {
@@ -70,32 +69,33 @@ let client = {};
             viewport();
         });
         PIXI.loader.add('avatar01', 'sprites/avatar_01.svg').load((loader, resources) => {
-            player = new PIXI.Sprite(resources.avatar01.texture);
-            player.x = 100;
-            player.y = 100;
-            player.anchor.x = 0.5;
-            player.anchor.y = 0.5;
+            $c.player = new PIXI.Sprite(resources.avatar01.texture);
+            $c.player.x = 100;
+            $c.player.y = 100;
+            $c.player.anchor.x = 0.5;
+            $c.player.anchor.y = 0.5;
 
-            console.log(player);
-
-            $c.app.stage.addChild(player);
+            $c.app.stage.addChild($c.player);
         });
+        $c.lastTick = performance.now();
         window.requestAnimationFrame($c.step);
     };
 
     $c.step = function (tick) {
-        tick = Date.now();
-        let delta = (tick - lastTick) / 1000;
-        lastTick = tick;
         $c.dataStream.then(function ($data) {
+            tick = performance.now();
+            let delta = Math.round((tick - $c.lastTick));
+            $c.lastTick = tick;
+
             if (activity) $c.io.emit('input', $c.controls);
             $c.io.emit('tick', delta);
             $c.dataStream = dataStream();
+            
             for (let i in $data) {
-                if ($c.id) {
+                if ($c.player && $c.id) {
                     if ($data[i].id === $c.id) {
-                        player.x = $data[i].x;
-                        player.y = $data[i].y;
+                        $c.player.x = $data[i].x;
+                        $c.player.y = $data[i].y;
                     }
                 }
             }

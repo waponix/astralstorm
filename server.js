@@ -70,6 +70,7 @@ let server = {};
     }
 
     function minifyWorld() {
+        'use strict';
         let preserve = [
             'id',
             'instanceOf',
@@ -87,10 +88,14 @@ let server = {};
                 for (let pi in world[i]) {
                     if (preserve.indexOf(pi) < 0) {
                         delete world[i][pi];
+                    } else {
+                        Object.defineProperty(world[i], pi, {writable: false});
                     }
                 }
                 world[hash.unique(i)] = world[i];
                 delete world[i];
+            } else {
+                Object.defineProperty(world, i, {writable: false});
             }
         }
         return world;

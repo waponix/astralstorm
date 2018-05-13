@@ -6,6 +6,9 @@
 let server = {};
 
 (function ($s) {
+    require('./lib/components/instanceFns')($s);
+    require('./lib/components/utilFns')();
+
     let config = require('./lib/config');
     let gameStep = config.gameStep;
 
@@ -51,10 +54,10 @@ let server = {};
                 delete $s.world[this.id];
             })
             .on('input', function (controls) {
-                if ($s.world[this.id].id = controls.id) Object.assign($s.world[this.id].controls, controls.events);
+                if ($s.world[this.id] && $s.world[this.id].id === controls.id) Object.assign($s.world[this.id].controls, controls.events);
             })
             .on('tick', function (dt) {
-                if ($s.world[this.id].id === dt.id) $s.world[this.id].dt = dt.delta;
+                if ($s.world[this.id] && $s.world[this.id].id === dt.id) $s.world[this.id].dt = dt.delta;
             });
     });
 
@@ -102,24 +105,5 @@ let server = {};
             }
         }
         return world;
-    }
-
-    global.createInstance = function (objectName, config, key) {
-        if (key) {
-            $s.world[key] = new $s.obj[objectName](config);
-        } else {
-            $s.world[Date.now()] = new $s.obj[objectName](config);
-        }
-
-        return true;
-    }
-
-    global.destroy = function (obj) {
-        for (let key in $s.world) {
-            if ($s.world[key] === obj) {
-                if (obj.onDestroy) obj.onDestroy();
-                delete $s.world[key];
-            }
-        }
     }
 }(server));

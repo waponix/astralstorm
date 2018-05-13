@@ -116,8 +116,8 @@ let client = {};
         });
 
         $c.fObjects.gameTime = new PIXI.Text('', textInfo);
-
         $c.foreground.addChild($c.fObjects.gameTime);
+
         $c.app.stage.addChild($c.background);
         $c.app.stage.addChild($c.world);
         $c.app.stage.addChild($c.foreground);
@@ -130,6 +130,8 @@ let client = {};
             gt.M = gt.getUTCMinutes() < 10 ? '0' + gt.getUTCMinutes() : gt.getUTCMinutes();
             gt.S = gt.getUTCSeconds() < 10 ? '0' + gt.getUTCSeconds() : gt.getUTCSeconds();
             $c.fObjects.gameTime.text = gt.H + ':' + gt.M + ':' +gt.S;
+            let gameTimeMetrics = PIXI.TextMetrics.measureText($c.fObjects.gameTime.text, $c.fObjects.gameTime.style);
+            $c.fObjects.gameTime.position.set((window.innerWidth * 0.5) - (gameTimeMetrics.width * 0.5), 20);
 
             for (let key in objectStack) {
                 let object = objectStack[key].id ? objectStack[key] : null;

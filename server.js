@@ -6,8 +6,8 @@
 let server = {};
 
 (function ($s) {
-    let gameStep = 16 / 1000;
     let config = require('./lib/config');
+    let gameStep = config.gameStep;
 
     $s.express = require('express');
     $s.app = $s.express();
@@ -42,7 +42,8 @@ let server = {};
 
         $c.emit('init', {
             id: $s.world[$c.id].id,
-            world: config.world
+            world: config.world,
+            resource: config.resource
         });
 
         $c
@@ -50,10 +51,10 @@ let server = {};
                 delete $s.world[this.id];
             })
             .on('input', function (controls) {
-                if ($s.world[this.id]) Object.assign($s.world[this.id].controls, controls);
+                if ($s.world[this.id].id = controls.id) Object.assign($s.world[this.id].controls, controls.events);
             })
             .on('tick', function (dt) {
-                if ($s.world[this.id]) $s.world[this.id].dt = dt;
+                if ($s.world[this.id].id === dt.id) $s.world[this.id].dt = dt.delta;
             });
     });
 
@@ -79,12 +80,14 @@ let server = {};
             'width',
             'height',
             'rotation',
-            'scale'
+            'scale',
+            'anchor',
+            'sprite'
         ];
         let hash = require('shorthash');
         let world = JSON.parse(JSON.stringify($s.world));
         for (let i in world) {
-            if (world[i].instanceOf) {
+            if (world[i].id) {
                 for (let pi in world[i]) {
                     if (preserve.indexOf(pi) < 0) {
                         delete world[i][pi];

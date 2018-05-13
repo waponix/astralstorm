@@ -36,10 +36,10 @@ let client = {};
             const mouseButton = ['L', 'M', 'R'];
             switch (e.type) {
                 case 'mousemove':
-                    $c.events.mouse.pX = e.pageX;
-                    $c.events.mouse.pY = e.pageY;
-                    $c.events.mouse.cX = e.clientX;
-                    $c.events.mouse.cY = e.clientY;
+                    $c.events.mouse.px = e.pageX;
+                    $c.events.mouse.py = e.pageY;
+                    $c.events.mouse.cx = e.clientX;
+                    $c.events.mouse.cy = e.clientY;
                     break;
                 case 'mousedown':
                     $c.events.mouse[mouseButton[e.which - 1]] = true; break;
@@ -62,11 +62,13 @@ let client = {};
 
     $c.init = function () {
         this.inputListeners();
-        $c.world = {};
+        $c.objects = {};
+        $c.fObjects = {};
+        $c.bObjects = {};
         $c.io.once('init', function (data) {
             $c.id = data.id;
             $c.app = new PIXI.Application();
-            viewport()
+            viewport();
             load(data.resource);
             window.requestAnimationFrame($c.step);
         });
@@ -85,7 +87,7 @@ let client = {};
             });
             $c.io.emit('tick', {
                 id: $c.id,
-                delta: delta
+                delta: delta / 1000
             });
             $c.dataStream = dataStream();
 
@@ -97,6 +99,9 @@ let client = {};
 
     function load(resource) {
         loaded = false;
+        $c.foreground = new PIXI.Container();
+        $c.background = new PIXI.Container();
+        $c.world = new PIXI.Container();
         PIXI.loader
             .add(resource)
             .load(setup);
@@ -104,35 +109,53 @@ let client = {};
 
     function setup() {
         loaded = true;
+
+        let textInfo = new PIXI.TextStyle({
+            fill: 0xFFFFFF,
+            fontSize: 14
+        });
+
+        $c.fObjects.gameTime = new PIXI.Text('', textInfo);
+
+        $c.foreground.addChild($c.fObjects.gameTime);
+        $c.app.stage.addChild($c.background);
+        $c.app.stage.addChild($c.world);
+        $c.app.stage.addChild($c.foreground);
     }
 
     function objectsHandler(objectStack) {
-        for (let key in objectStack) {
-            let object = objectStack[key].id ? objectStack[key] : null;
-            if (object) {
-                if (keyExistOnWorld(key)) {
-                    //update object
-                    Object.assign($c.world[key], object);
-                } else {
-                    //when all resources are loaded create instance for new object
-                    if (loaded) {
+        if (loaded) {
+            let gt = new Date(objectStack.elapse);
+            gt.H = gt.getUTCHours() < 10 ? '0' + gt.getUTCHours() : gt.getUTCHours();
+            gt.M = gt.getUTCMinutes() < 10 ? '0' + gt.getUTCMinutes() : gt.getUTCMinutes();
+            gt.S = gt.getUTCSeconds() < 10 ? '0' + gt.getUTCSeconds() : gt.getUTCSeconds();
+            $c.fObjects.gameTime.text = gt.H + ':' + gt.M + ':' +gt.S;
+
+            for (let key in objectStack) {
+                let object = objectStack[key].id ? objectStack[key] : null;
+                if (object) {
+                    if (keyExistsOnObject(key)) {
+                        //update object
+                        Object.assign($c.objects[key], object);
+                    } else {
+                        //when all resources are loaded create instance for world
                         createInstance(key, object);
                     }
                 }
             }
-        }
 
-        //scan for non-existing objects then remove from world
-        for (let key in $c.world) {
-            if (!keyExistOnStack(key, objectStack)) {
-                $c.app.stage.removeChild($c.world[key]);
-                delete $c.world[key];
+            //scan for non-existing objects then remove from world
+            for (let key in $c.objects) {
+                if (!keyExistOnStack(key, objectStack)) {
+                    $c.world.removeChild($c.objects[key]);
+                    delete $c.objects[key];
+                }
             }
         }
     }
 
-    function keyExistOnWorld(key) {
-        return !!$c.world[key];
+    function keyExistsOnObject(key) {
+        return !!$c.objects[key];
     }
 
     function keyExistOnStack(key, stack) {
@@ -140,10 +163,10 @@ let client = {};
     }
 
     function createInstance(key, obj) {
-        $c.world[key] = new PIXI.Sprite(PIXI.loader.resources[obj.sprite].texture);
-        Object.assign($c.world[key], obj);
+        $c.objects[key] = new PIXI.Sprite(PIXI.loader.resources[obj.sprite].texture);
+        Object.assign($c.objects[key], obj);
 
-        $c.app.stage.addChild($c.world[key]);
+        $c.world.addChild($c.objects[key]);
     }
 
     function dataStream() {

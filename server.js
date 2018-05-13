@@ -59,7 +59,7 @@ let server = {};
     });
 
     function init() {
-        console.log('$server running at 3000');
+        console.log('$server running at ' + config.port);
         $s.world = config.world;
         setInterval($s.step, gameStep);
     }

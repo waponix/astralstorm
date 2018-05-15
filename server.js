@@ -74,25 +74,12 @@ let server = {};
 
     function minifyWorld() {
         'use strict';
-        let preserve = [
-            'id',
-            'instanceOf',
-            'x',
-            'y',
-            'width',
-            'height',
-            'rotation',
-            'scale',
-            'anchor',
-            'sprite',
-            'tint'
-        ];
         let hash = require('shorthash');
         let world = JSON.parse(JSON.stringify($s.world));
         for (let i in world) {
             if (world[i].id) {
                 for (let pi in world[i]) {
-                    if (preserve.indexOf(pi) < 0) {
+                    if (world[i].preserve && world[i].preserve.indexOf(pi) < 0) {
                         delete world[i][pi];
                     } else {
                         Object.defineProperty(world[i], pi, {writable: false});

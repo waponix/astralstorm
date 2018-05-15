@@ -20,7 +20,6 @@ let server = {};
 
     $s.obj = {
         Player: require('./lib/objects/Player'),
-        Bullet: require('./lib/objects/Bullet')
     };
 
     let startTime = Date.now();
@@ -30,7 +29,7 @@ let server = {};
         $s.io.emit('dataStream', minifyWorld($s.world));
     };
 
-    $s.http.listen(config.port, function () {
+    $s.http.listen(config.port, '0.0.0.0', function () {
         init();
     });
 
@@ -85,7 +84,8 @@ let server = {};
             'rotation',
             'scale',
             'anchor',
-            'sprite'
+            'sprite',
+            'tint'
         ];
         let hash = require('shorthash');
         let world = JSON.parse(JSON.stringify($s.world));

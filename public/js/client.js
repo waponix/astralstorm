@@ -67,6 +67,7 @@ let client = {};
         $c.bObjects = {};
         $c.io.once('init', function (data) {
             $c.id = data.id;
+            PIXI.utils.skipHello();
             $c.app = new PIXI.Application();
             viewport();
             load(data.resource);
@@ -131,7 +132,7 @@ let client = {};
             gt.S = gt.getUTCSeconds() < 10 ? '0' + gt.getUTCSeconds() : gt.getUTCSeconds();
             $c.fObjects.gameTime.text = gt.H + ':' + gt.M + ':' +gt.S;
             let gameTimeMetrics = PIXI.TextMetrics.measureText($c.fObjects.gameTime.text, $c.fObjects.gameTime.style);
-            $c.fObjects.gameTime.position.set((window.innerWidth * 0.5) - (gameTimeMetrics.width * 0.5), 20);
+            $c.fObjects.gameTime.position.set((window.innerWidth * 0.5) - (gameTimeMetrics.width * 0.5), 10);
 
             for (let key in objectStack) {
                 let object = objectStack[key].id ? objectStack[key] : null;

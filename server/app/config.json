@@ -1,0 +1,10 @@
+{
+  "server": {
+    "port": 1994
+  },
+  "world": {
+    "width": null,
+    "height": null,
+    "step": 0.0016
+  }
+}

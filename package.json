@@ -1,17 +1,20 @@
 {
-  "name": "astral-storm",
-  "version": "0.0.1",
-  "description": "Prepare to defend your Mothership!",
-  "main": "server.js",
+  "name": "astralstorm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "core.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Eric Bermejo Reyes | eric.bermejo.reyes@gmail.com",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "express": "^4.10.2",
-    "sha1": "^1.1.1",
+    "express": "^4.16.3",
+    "file-system": "^2.2.2",
+    "p2": "^0.7.1",
     "shorthash": "0.0.2",
-    "socket.io": "^1.4.8",
+    "socket.io": "^2.1.1",
     "uuid": "^3.2.1"
   }
 }

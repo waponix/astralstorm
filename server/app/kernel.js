@@ -5,20 +5,46 @@ module.exports = ($s) => {
     $s.io = $s.lib.sio.listen($s.server);
     $s.c = JSON.parse($s.lib.fs.readFileSync('./server/app/config.json', 'utf-8'));
     loader.call($s);
-    console.log(new $s.obj.Player());
     require('./app')($s);
 };
 
 function loader() {
-    let $s = this;
-    $s.obj = $s.obj || {};
-    $s.spr = $s.spr || {};
+    let
+        $s = this,
+        globals = {};
 
-    $s.lib.fs.recurseSync('server/app/objects', ['*.js'], (path, rel, filename) => {
-        $s.obj[filename.replace('.js', '')] = require('./objects/' + filename);
-    });
+    $s.obj = $s.obj || new Map();
+    $s.spr = $s.spr || new Map();
 
-    $s.lib.fs.recurseSync('server/app/sprites', ['*.js'], (path, rel, filename) => {
-        $s.spr[filename.replace('.js', '')] = require('./sprites/' + filename);
-    });
+    recurseDirs([
+        {
+            path: 'server/app/objects',
+            filter: ['*.js'],
+            callback: (path, rel, filename) => {
+                $s.obj.set(filename.replace('.js', ''), require('./objects/' + filename));
+            }
+        },
+        {
+            path: 'server/app/sprites',
+            filter: ['*.js'],
+            callback: (path, rel, filename) => {
+                $s.spr.set(filename.replace('.js', ''), require('./sprites/' + filename));
+            }
+        },
+        {
+            path: 'server/app/globals',
+            filter: ['*.js'],
+            callback: (path, rel, filename) => {
+                Object.assign(globals, require('./globals/' + filename)($s));
+            }
+        }
+    ]);
+
+    global.$ = globals;
+
+    function recurseDirs(dirs) {
+        for (let dir of dirs) {
+            if ($s.lib.fs.existsSync(dir.path)) $s.lib.fs.recurseSync(dir.path, dir.filter, dir.callback);
+        }
+    }
 }

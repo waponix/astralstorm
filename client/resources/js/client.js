@@ -65,7 +65,7 @@ let client = {};
         $c.objects = {};
         $c.fObjects = {};
         $c.bObjects = {};
-        $c.io.once('init', function (data) {
+        $c.io.once('s::c', function (data) {
             $c.id = data.id;
             PIXI.utils.skipHello();
             $c.app = new PIXI.Application();
@@ -82,11 +82,11 @@ let client = {};
             let delta = Math.round((tick - $c.lastTick));
             $c.lastTick = tick;
 
-            if (activity) $c.io.emit('input', {
+            if (activity) $c.io.emit('p::i', {
                 id: $c.id,
                 events: $c.events
             });
-            $c.io.emit('tick', {
+            $c.io.emit('c::t', {
                 id: $c.id,
                 delta: delta / 1000
             });

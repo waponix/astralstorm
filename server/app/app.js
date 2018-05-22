@@ -5,18 +5,21 @@ module.exports = ($s) => {
 function app() {
     let $s = this;
 
-    $s.world = {};
+    $s.world = new Map();
 
     $s.step = function () {
 
     };
+
+    $s.app.use($s.lib.express.static('client/resources'));
 
     $s.app.get('/', (req, res) => {
         res.sendFile(__dirname.replace(/[\\|\/]server[\\|\/]app/, '/client/client.html'));
     });
 
     $s.io.on('connect', ($c) => {
-
+        $.createInstance('Player');
+        console.log($s.world[Symbol.iterator]());
     });
 
     $s.server.listen($s.c.server.port, () => {

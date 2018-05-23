@@ -67,10 +67,6 @@ let client = {};
         $c.bObjects = {};
         $c.io.once('s::c', function (data) {
             $c.id = data.id;
-            PIXI.utils.skipHello();
-            $c.app = new PIXI.Application();
-            viewport();
-            load(data.resource);
             window.requestAnimationFrame($c.step);
         });
     };
@@ -91,86 +87,10 @@ let client = {};
                 delta: delta / 1000
             });
             $c.dataStream = dataStream();
-
-            objectsHandler($data);
-            dataPreviewer.text(JSON.stringify($data, null, 2));
         });
         window.requestAnimationFrame($c.step);
     };
 
-    function load(resource) {
-        loaded = false;
-        $c.foreground = new PIXI.Container();
-        $c.background = new PIXI.Container();
-        $c.world = new PIXI.Container();
-        PIXI.loader
-            .add(resource)
-            .load(setup);
-    }
-
-    function setup() {
-        loaded = true;
-
-        let textInfo = new PIXI.TextStyle({
-            fill: 0xFFFFFF,
-            fontSize: 14
-        });
-
-        $c.fObjects.gameTime = new PIXI.Text('', textInfo);
-        $c.foreground.addChild($c.fObjects.gameTime);
-
-        $c.app.stage.addChild($c.background);
-        $c.app.stage.addChild($c.world);
-        $c.app.stage.addChild($c.foreground);
-    }
-
-    function objectsHandler(objectStack) {
-        if (loaded) {
-            let gt = new Date(objectStack.elapse);
-            gt.H = gt.getUTCHours() < 10 ? '0' + gt.getUTCHours() : gt.getUTCHours();
-            gt.M = gt.getUTCMinutes() < 10 ? '0' + gt.getUTCMinutes() : gt.getUTCMinutes();
-            gt.S = gt.getUTCSeconds() < 10 ? '0' + gt.getUTCSeconds() : gt.getUTCSeconds();
-            $c.fObjects.gameTime.text = gt.H + ':' + gt.M + ':' +gt.S;
-            let gameTimeMetrics = PIXI.TextMetrics.measureText($c.fObjects.gameTime.text, $c.fObjects.gameTime.style);
-            $c.fObjects.gameTime.position.set((window.innerWidth * 0.5) - (gameTimeMetrics.width * 0.5), 10);
-
-            for (let key in objectStack) {
-                let object = objectStack[key].id ? objectStack[key] : null;
-                if (object) {
-                    if (keyExistsOnObject(key)) {
-                        //update object
-                        Object.assign($c.objects[key], object);
-                    } else {
-                        //when all resources are loaded create instance for world
-                        createInstance(key, object);
-                    }
-                }
-            }
-
-            //scan for non-existing objects then remove from world
-            for (let key in $c.objects) {
-                if (!keyExistOnStack(key, objectStack)) {
-                    $c.world.removeChild($c.objects[key]);
-                    delete $c.objects[key];
-                }
-            }
-        }
-    }
-
-    function keyExistsOnObject(key) {
-        return !!$c.objects[key];
-    }
-
-    function keyExistOnStack(key, stack) {
-        return !!stack[key];
-    }
-
-    function createInstance(key, obj) {
-        $c.objects[key] = new PIXI.Sprite(PIXI.loader.resources[obj.sprite].texture);
-        Object.assign($c.objects[key], obj);
-
-        $c.world.addChild($c.objects[key]);
-    }
 
     function dataStream() {
         return new Promise(function (res) {
@@ -178,18 +98,6 @@ let client = {};
                 res($data);
             });
         });
-    }
-
-    function viewport() {
-        document.body.appendChild($c.app.view);
-        $c.app.renderer.view.style.position = "absolute";
-        $c.app.renderer.view.style.display = "block";
-        $c.app.renderer.autoResize = true;
-        viewportResize();
-    }
-
-    function viewportResize() {
-        if ($c.app) $c.app.renderer.resize(window.innerWidth, window.innerHeight);
     }
 }(client));
 

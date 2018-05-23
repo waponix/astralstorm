@@ -1,9 +1,3 @@
-module.exports = Player;
+module.exports = _.defineObject('Player', function () {
 
-let Object = require('../components/Object');
-
-function Player() {
-    let me = this;
-
-    Object.call(me);
-}
+});

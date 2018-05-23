@@ -7,7 +7,9 @@ function app() {
 
     $s.world = new Map();
 
-    $s.step = step;
+    $s.step = function step() {
+        _.update();
+    };
 
     $s.app.use($s.lib.express.static('client/resources'));
 
@@ -16,15 +18,11 @@ function app() {
     });
 
     $s.io.on('connect', ($c) => {
-        $.createInstance('Player', $c.id);
+        _.createInstance('Player', $c.id);
     });
 
     $s.server.listen($s.c.server.port, () => {
         console.log('game running at port ' + $s.c.server.port);
         setInterval($s.step, $s.c.world.step);
     });
-
-    function step() {
-        $.update();
-    }
 }

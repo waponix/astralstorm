@@ -11,10 +11,29 @@ module.exports = ($s) => {
 function loader() {
     let
         $s = this,
-        globals = {};
+        globals = {},
+        _Object = require('./components/_Object');
 
     $s.obj = $s.obj || new Map();
     $s.spr = $s.spr || new Map();
+
+    Object.defineProperty($s.obj, '_Object', {
+        get() {
+            return _Object;
+        }
+    });
+
+    recurseDirs([
+        {
+            path: 'server/app/globals',
+            filter: ['*.js'],
+            callback: (path, rel, filename) => {
+                Object.assign(globals, require('./globals/' + filename)($s));
+            }
+        }
+    ]);
+
+    global._ = globals;
 
     recurseDirs([
         {
@@ -31,16 +50,7 @@ function loader() {
                 $s.spr.set(filename.replace('.js', ''), require('./sprites/' + filename));
             }
         },
-        {
-            path: 'server/app/globals',
-            filter: ['*.js'],
-            callback: (path, rel, filename) => {
-                Object.assign(globals, require('./globals/' + filename)($s));
-            }
-        }
     ]);
-
-    global.$ = globals;
 
     function recurseDirs(dirs) {
         for (let dir of dirs) {

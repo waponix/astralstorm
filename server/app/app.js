@@ -18,8 +18,7 @@ function app() {
     });
 
     $s.io.on('connect', ($c) => {
-        $.createInstance('Player');
-        console.log($s.world[Symbol.iterator]());
+        $.createInstance('Player', $c.id);
     });
 
     $s.server.listen($s.c.server.port, () => {

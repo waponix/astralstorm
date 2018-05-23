@@ -1,19 +1,26 @@
 module.exports = Object;
 
 function Object() {
-    this.x = 0;
-    this.y = 0;
-    this.index = 0;
-    this.height = 0;
-    this.width = 0;
-    this.rotation = 0;
-    this.mass = 0;
-    this.instanceOf = arguments.callee.caller.name;
+    let me = this;
+    me.x = 0;
+    me.y = 0;
+    me.index = 0;
+    me.height = 0;
+    me.width = 0;
+    me.rotation = 0;
+    me.mass = 0;
+    me.instanceOf = arguments.callee.caller.name;
+    me.id = $.genId();
+    me.controls = {
+        keyPress: {},
+        mouse: {},
+        arrow: {}
+    };
 
-    this.update = function () {
-        if (typeof this.onStartStep === 'function') this.onStartStep();
-        if (typeof this.onStep === 'function') this.onStep();
-        if (typeof this.onEndStep === 'function') this.onEndStep();
+    me.update = function () {
+        if (typeof me.onStartStep === 'function') me.onStartStep();
+        if (typeof me.onStep === 'function') me.onStep();
+        if (typeof me.onEndStep === 'function') me.onEndStep();
     };
 
     if (typeof this.onCreate === 'function') {

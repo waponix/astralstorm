@@ -7,9 +7,7 @@ function app() {
 
     $s.world = new Map();
 
-    $s.step = function () {
-
-    };
+    $s.step = step;
 
     $s.app.use($s.lib.express.static('client/resources'));
 
@@ -23,6 +21,10 @@ function app() {
 
     $s.server.listen($s.c.server.port, () => {
         console.log('game running at port ' + $s.c.server.port);
-        let loop = setInterval($s.step, $s.c.world.step);
+        setInterval($s.step, $s.c.world.step);
     });
+
+    function step() {
+        $.update();
+    }
 }

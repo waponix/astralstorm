@@ -11,6 +11,6 @@ function lib() {
         fs: require('file-system'),
         hash: require('shorthash'),
         uuid: require('uuid/v4'),
-        p2: require('p2')
+        matter: require('matter-js')
     };
 };

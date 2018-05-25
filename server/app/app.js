@@ -6,9 +6,11 @@ function app() {
     let $s = this;
 
     $s.world = new Map();
+    $s.engine = $s.lib.matter.Engine;
 
     $s.step = function step() {
         _.update();
+        //$s.io.emit('data', Array.from($s.world.values()));
     };
 
     $s.app.use($s.lib.express.static('client/resources'));
@@ -19,6 +21,10 @@ function app() {
 
     $s.io.on('connect', ($c) => {
         _.createInstance('Player', $c.id);
+
+        $c.on('disconnect', () => {
+            _.destroyInstance($c.id);
+        });
     });
 
     $s.server.listen($s.c.server.port, () => {

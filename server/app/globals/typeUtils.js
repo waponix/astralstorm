@@ -9,8 +9,11 @@ module.exports = ($s) => {
         isString: function (value) {
             return typeof value === 'string';
         },
-        isInt: function (value) {
-            return typeof value === 'number';
+        isNum: function (value) {
+            return typeof value === 'number' || isNaN(value);
+        },
+        isBool: function (value) {
+            return typeof value === 'boolean';
         },
         isNone: function (value) {
             return !value || value === '';

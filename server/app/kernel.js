@@ -34,6 +34,17 @@ function loader() {
     ]);
 
     global._ = globals;
+    global.document = {
+        createElement: function(){
+            // Canvas
+            return {
+                getContext: function() {
+                    return {};
+                }
+            };
+        }
+    };
+    global.window = {};
 
     recurseDirs([
         {

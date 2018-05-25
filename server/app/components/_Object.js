@@ -1,82 +1,50 @@
 module.exports = _Object;
 
 function _Object() {
-    let me = this,
-        onStep = null,
-        onStartStep = null,
-        onEndStep = null,
-        onDestroy = null,
-        controls = {
-            keyPress: {},
-            mouse: {},
-            arrow: {}
-        };
-    me.x = 0;
-    me.y = 0;
-    me.index = 0;
-    me.height = 0;
-    me.width = 0;
-    me.rotation = 0;
-    me.mass = 0;
+    let me = this;
 
-    Object.defineProperties(me, {
-        id: {value: _.genId()},
-        instanceOf: {value: arguments.callee.caller.name},
-        controls: {
-            get() {
-                return controls;
-            },
-            set(ctrl) {
-                Object.assign(controls, ctrl);
+    define
+        ('onCreate', function () {})
+        ('onStep', function () {})
+        ('onStartStep', function () {})
+        ('onEndStep', function () {})
+        ('onDestroy', function () {})
+        ('update', function () {
+            if (_.isFunc(me.onCreate)) {
+                me.onCreate();
+                me.onCreate = null;
             }
-        },
-        update: {
-            get() {
-                return update;
-            }
-        },
-        onCreate: {
-            set(func) {
-                func.call(me);
-            }
-        },
-        onStep: {
-            get() {
-                return onStep;
-            },
-            set(func) {
-                onStep = func;
-            }
-        },
-        onStartStep: {
-            get() {
-                return onStartStep;
-            },
-            set(func) {
-                onStartStep = func;
-            }
-        },
-        onEndStep: {
-            get() {
-                return onEndStep;
-            },
-            set(func) {
-                onEndStep = func;
-            }
-        },
-        onDestroy: {
-            get() {
-                return onDestroy;
-            },
-            set(func) {
-                onDestroy = func;
-            }
+            if (_.isFunc(me.onStartStep)) me.onStartStep();
+            if (_.isFunc(me.onStep)) me.onStep();
+            if (_.isFunc(me.onEndStep)) me.onEndStep();
+        });
+
+    function define(prop, val = null, options = {}) {
+        let o = Object.assign({
+                get: true,
+                set: true,
+                enumerable: !_.isFunc(val)
+            }, options),
+            scope = {};
+
+        if (_.isBool(o.set) && o.set) {
+            o.set = (value) => {
+                scope[prop] = value;
+            };
+        } else if(!_.isFunc(o.set)) {
+            delete o.set;
         }
-    });
 
-    function update () {
-        if (typeof me.onStartStep === 'function') me.onStartStep();
-        if (typeof me.onStep === 'function') me.onStep();
-        if (typeof me.onEndStep === 'function') me.onEndStep();
+        if (_.isBool(o.get) && o.get) {
+            o.get = () => {
+                return scope[prop];
+            }
+        } else if(!_.isFunc(o.get)) {
+            delete o.get;
+        }
+
+        Object.defineProperty(me, prop, o);
+
+        return define;
     };
 };

@@ -5,11 +5,10 @@ module.exports = ($s) => {
                 objName = arguments[0] || null,
                 setup = arguments[2] || (typeof arguments[1] === 'object' ? arguments[1] : {}),
                 key = $s.lib.hash.unique((arguments.length > 1 ? (typeof arguments[1] !== 'object' ? arguments[1] : $s.lib.uuid()) : $s.lib.uuid()));
-            console.log($s.obj);
-            let obj = $s.obj.get(objName);
+            let o = $s.obj.get(objName);
             if (!$s.world.has(key)) {
                 let instance = $s.world
-                                .set(key, Object.assign(new obj(), setup))
+                                .set(key, Object.assign(new o(), setup))
                                 .get(key);
                 Object.defineProperty(instance, 'ref', {
                     get() {
@@ -19,11 +18,21 @@ module.exports = ($s) => {
             }
         },
         getInstance: function (instance) {
-            return $s.world.get(instance.ref);
+            let ref = _.isObj(instance) ? instance.ref : instance;
+            let hashRef = $s.lib.hash.unique(ref);
+            switch (true) {
+                case $s.world.has(ref): return $s.world.get(ref); break;
+                case $s.world.has(hashRef): return $s.world.get(hashRef); break;
+            }
         },
         destroyInstance: function (instance) {
-            if ($.isFunc(instance.onDestroy)) instance.onDestroy();
-            return $s.world.delete(instance.ref);
+            if (_.isObj(instance) && $.isFunc(instance.onDestroy)) instance.onDestroy();
+            let ref = _.isObj(instance) ? instance.ref : instance;
+            let hashRef = $s.lib.hash.unique(ref);
+            switch (true) {
+                case $s.world.has(ref): $s.world.delete(ref); break;
+                case $s.world.has(hashRef): $s.world.delete(hashRef); break;
+            }
         },
         update: function () {
             if (arguments.callee.caller.name === 'step') {

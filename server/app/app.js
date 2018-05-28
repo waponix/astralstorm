@@ -10,7 +10,6 @@ function app() {
 
     $s.step = function step() {
         _.update();
-        //$s.io.emit('data', Array.from($s.world.values()));
     };
 
     $s.app.use($s.lib.express.static('client/resources'));

@@ -5,7 +5,6 @@ module.exports = ($s) => {
     $s.io = $s.lib.sio.listen($s.server);
     $s.c = JSON.parse($s.lib.fs.readFileSync('./server/app/config.json', 'utf-8'));
     loader.call($s);
-    require('./app')($s);
 };
 
 function loader() {

@@ -9,23 +9,20 @@ module.exports = ($s) => {
             if (!$s.world.has(key)) {
                 $s.world.set(key, Object.assign(new o({ref: key}), setup));
             }
+            return $s.world.get(key);
         },
         getInstance: function (instance) {
             let ref = _.isObj(instance) ? instance.ref : instance;
             let hashRef = $s.lib.hash.unique(ref);
-            switch (true) {
-                case $s.world.has(ref): return $s.world.get(ref); break;
-                case $s.world.has(hashRef): return $s.world.get(hashRef); break;
-            }
+            return $s.world.get(ref) || $s.world.get(hashRef);
         },
         destroyInstance: function (instance) {
-            if (_.isObj(instance) && $.isFunc(instance.onDestroy)) instance.onDestroy();
+            if (_.isObj(instance) && _.isFunc(instance.onDestroy)) instance.onDestroy();
             let ref = _.isObj(instance) ? instance.ref : instance;
             let hashRef = $s.lib.hash.unique(ref);
-            switch (true) {
-                case $s.world.has(ref): $s.world.delete(ref); break;
-                case $s.world.has(hashRef): $s.world.delete(hashRef); break;
-            }
+            let body = $s.world.get(ref) || $s.world.get(hashRef);
+            this.destroyBody(body.body);
+            $s.world.delete(body.ref);
         },
         update: function () {
             if (arguments.callee.caller.name === 'step') {
@@ -58,6 +55,9 @@ module.exports = ($s) => {
             }};
             obj = obj[objName];
             return obj;
+        },
+        addProp: function (obj, prop) {
+            Object.defineProperties(obj, prop);
         }
     };
 };

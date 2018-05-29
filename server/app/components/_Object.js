@@ -1,11 +1,6 @@
 module.exports = _Object;
 
 function _Object() {
-<<<<<<< HEAD
-    let me = this;
-
-};
-=======
     let me = this,
         body = {},
         sprite = {},
@@ -103,4 +98,3 @@ function _Object() {
         }
     });
 }
->>>>>>> 884ed2ebec54899bb969f4f7a7366e52c9b03716

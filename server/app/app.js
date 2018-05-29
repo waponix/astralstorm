@@ -32,7 +32,6 @@ function app() {
 
         $c.on('disconnect', () => {
             _.destroyInstance(player);
-            console.log($s.phyWorld);
         });
     });
 

@@ -23,6 +23,7 @@ function _Object() {
                 if (_.isFunc(this.onStartStep)) this.onStartStep();
                 if (_.isFunc(this.onStep)) this.onStep();
                 if (_.isFunc(this.onEndStep)) this.onEndStep();
+                me.body.update();
             }
         };
 

@@ -11,6 +11,7 @@ function lib() {
         fs: require('file-system'),
         hash: require('shorthash'),
         uuid: require('uuid/v4'),
-        matter: require('matter-js/build/matter.js')
+        matter: require('matter-js/build/matter.js'),
+        circularJson: require('circular-json')
     };
 };

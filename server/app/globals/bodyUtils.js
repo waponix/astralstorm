@@ -1,7 +1,20 @@
 module.exports = ($s) => {
     return {
-        createBody: function () {
-            return $s.lib.matter.Bodies.rectangle(0, 0, 30, 30);
+        body: $s.lib.matter.Body,
+        bodies: $s.lib.matter.Bodies,
+        engine: $s.lib.matter.Engine,
+        world: $s.lib.matter.World,
+        constraint: $s.lib.matter.Constraint,
+        composite: $s.lib.matter.Composite,
+        composites: $s.lib.matter.Composites,
+        runner: $s.lib.matter.Runner,
+        createBody: function (obj, options = {}) {
+            let body = this.body.create(options);
+            this.addProp(body, {ref: {value: obj.ref}});
+            return body;
+        },
+        destroyBody: function(body) {
+            this.composite.remove($s.phyWorld, body, true);
         }
     };
 };

@@ -2,10 +2,6 @@ module.exports = _.defineObject('Player', function () {
     let me = this;
     me.body = _.createBody(me);
 
-    me.onCreate = function () {
-        _.createInstance('Bullet', {owner: me});
-    };
-
     me.onStep = function () {
         let x = me.body.position.x;
         let y = me.body.position.y;

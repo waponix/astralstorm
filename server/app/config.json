@@ -5,6 +5,10 @@
   "world": {
     "width": null,
     "height": null,
-    "step": 16.66
+    "step": 16.66,
+    "gravity": {
+      "x": 0,
+      "y": 0
+    }
   }
 }

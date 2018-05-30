@@ -8,7 +8,7 @@ function app() {
     $s.engine = _.engine.create();
     $s.world = new Map();
     $s.phyWorld = $s.engine.world;
-    $s.phyWorld.gravity = {x: 0 , y: 0};
+    $s.phyWorld.gravity = $s.c.world.gravity;
 
     $s.step = function step() {
         _.update();

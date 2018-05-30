@@ -27,37 +27,29 @@ function loader() {
             path: 'server/app/globals',
             filter: ['*.js'],
             callback: (path, rel, filename) => {
-                Object.assign(globals, require('./globals/' + filename)($s));
+                let file = pathMerge(__dirname, path);
+                if (filename) Object.assign(globals, require(file)($s));
             }
         }
     ]);
 
     global._ = globals;
-    global.document = {
-        createElement: function(){
-            // Canvas
-            return {
-                getContext: function() {
-                    return {};
-                }
-            };
-        }
-    };
-    global.window = {};
 
     recurseDirs([
         {
             path: 'server/app/objects',
             filter: ['*.js'],
             callback: (path, rel, filename) => {
-                $s.obj.set(filename.replace('.js', ''), require('./objects/' + filename));
+                let file = pathMerge(__dirname, path);
+                if (filename) $s.obj.set(filename.replace('.js', ''), require(file));
             }
         },
         {
             path: 'server/app/sprites',
             filter: ['*.js'],
             callback: (path, rel, filename) => {
-                $s.spr.set(filename.replace('.js', ''), require('./sprites/' + filename));
+                let file = pathMerge(__dirname, path);
+                if (filename) $s.spr.set(filename.replace('.js', ''), require(file));
             }
         },
     ]);
@@ -66,5 +58,14 @@ function loader() {
         for (let dir of dirs) {
             if ($s.lib.fs.existsSync(dir.path)) $s.lib.fs.recurseSync(dir.path, dir.filter, dir.callback);
         }
+    }
+
+    function pathMerge (str1, str2) {
+        let rep = str2.split(/\\|\//);
+        rep.forEach((r, key) => {
+            rep[key] = new RegExp('[\\|\/]?' + r + '[\\|\/]?');
+            str1 = str1.replace(rep[key], '');
+        });
+        return $s.lib.path.join(str1, str2);
     }
 }

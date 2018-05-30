@@ -7,7 +7,8 @@ module.exports = ($s) => {
         constraint: $s.lib.matter.Constraint,
         composite: $s.lib.matter.Composite,
         composites: $s.lib.matter.Composites,
-        runner: $s.lib.matter.Runner,
+        events: $s.lib.matter.Events,
+        vector: $s.lib.matter.Vector,
         createBody: function (obj, options = {}) {
             let body = this.body.create(options);
             this.body.set(body, {id: this.genId()});

@@ -6,7 +6,7 @@
 let client = {};
 
 (function ($c) {
-    let dataPreviewer = $('pre#data');
+    let dataHolder = $('pre#data');
     let activity = false;
 
     $c.io = io();
@@ -74,6 +74,7 @@ let client = {};
             tick = performance.now();
             let delta = Math.round((tick - $c.lastTick));
             $c.lastTick = tick;
+            dataHolder.text(JSON.stringify($data, null, 2));
             $c.dataStream = dataStream();
         });
         window.requestAnimationFrame($c.step);
@@ -82,7 +83,7 @@ let client = {};
 
     function dataStream() {
         return new Promise(function (res) {
-            $c.io.once('dataStream', function ($data) {
+            $c.io.once('d::s', function ($data) {
                 res($data);
             });
         });

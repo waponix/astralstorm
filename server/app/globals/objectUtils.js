@@ -30,6 +30,7 @@ module.exports = ($s) => {
                 for (let obj of objs) {
                     obj[1].update();
                 }
+                _.engine.update($s.engine, $s.c.world.step);
             }
         },
         genId: function () {

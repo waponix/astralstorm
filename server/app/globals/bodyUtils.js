@@ -11,8 +11,7 @@ module.exports = ($s) => {
         vector: $s.lib.matter.Vector,
         createBody: function (obj, options = {}) {
             let body = this.body.create(options);
-            this.body.set(body, {id: this.genId()});
-            this.addProp(body, {ref: {value: obj.ref}});
+            this.getterSetters(body, {ref: {value: obj.ref}});
             return body;
         },
         destroyBody: function(body) {

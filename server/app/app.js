@@ -13,7 +13,7 @@ function app() {
     $s.step = function step() {
         _.update();
         if (_.getBodies($s.phyWorld)[0]) {
-            $s.io.emit('d::s', _.getBodies($s.phyWorld)[0].position);
+            $s.io.emit('d::s', Array.from($s.world.values()));
         }
     };
 

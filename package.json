@@ -1,0 +1,17 @@
+{
+  "name": "astral-defense",
+  "version": "0.0.1",
+  "description": "Prepare to defend your Mothership!",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eric Bermejo Reyes",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "express": "^4.10.2",
+    "file-system": "^2.2.2",
+    "shortid": "^2.2.13",
+    "socket.io": "^1.4.8"
+  }
+}

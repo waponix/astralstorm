@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+    <title>Astral Storm</title>
+    <link href='https://fonts.googleapis.com/css?family=Orbitron' rel='stylesheet' type='text/css'>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            -ms-box-sizing: border-box;
+            -o-box-sizing: border-box;
+            position: relative;
+        }
+
+        body {
+            background: #000000;
+            overflow: hidden;
+        }
+
+        canvas {
+            image-rendering: optimizeSpeed; /* Older versions of FF          */
+            image-rendering: -moz-crisp-edges; /* FF 6.0+                       */
+            image-rendering: -webkit-optimize-contrast; /* Safari                        */
+            image-rendering: -o-crisp-edges; /* OS X & Windows Opera (12.02+) */
+            image-rendering: pixelated; /* Awesome future-browsers       */
+            -ms-interpolation-mode: nearest-neighbor; /* IE                            */
+        }
+
+        #infos {
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+    </style>
+</head>
+<body oncontextmenu="return false">
+<canvas id="game-world"></canvas>
+<canvas id="infos"></canvas>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+<script src="client.js"></script>
+</body>
+</html>

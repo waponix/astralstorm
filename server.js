@@ -12,9 +12,6 @@ let assets = {
 //initialize components
 require('./components/globals/init')();
 
-let timeStart = new Date();
-let elapsedTime = '';
-
 app.use(express.static('public'));
 
 app.get('/', function (req, res) {
@@ -50,7 +47,7 @@ io.on('connection', function (socket) {
             });
             if (player) {
                 for (let i in data.io) {
-                    player.controller[i] = data.io[i];
+                    player._input[i] = data.io[i];
                 }
             }
         }

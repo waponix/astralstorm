@@ -11,20 +11,22 @@ module.exports = () => {
         this.speed = 0;
         this._draw = true;
 
-        this.controller = {
+        this._input = {
             keyPress: {},
             mouse: {X: 0, Y: 0}
         };
 
-        this._destroy = (inMemory = true) => {
+        this._destroy = (inMemory) => {
             let index = World._objects[this._objGroup].find((obj) => {
                 return obj._id === this._id;
             });
             if (index < 0) return;
             if (this.onDestroy) this.onDestroy();
             if (inMemory) {
+                //totaly remove object from stack
                 World._objects[this._objGroup].splice(index, 1);
             } else {
+                //only restrict the object from being drawn
                 this._draw = false;
             }
         };
@@ -34,13 +36,52 @@ module.exports = () => {
         };
 
         this._update = () => {
-            if (this.sprite) {
+            //run collision checking
+            if (this.onCollision) {
+                for(let obj in this.onCollision) {
+                    let groupName = pluralize(obj);
+                    if (World._objects[groupName]) {
+                        let objGroup = World._objects[groupName];
+
+                        for (let i in objGroup) {
+                            let entity = objGroup[i];
+                            if (entity._id !== this._id) {
+                                if (collide(this, entity)) this.onCollision[obj](entity);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (this.body) {
                 this.body.x = this.x;
                 this.body.y = this.y;
+            }
+            if (this.sprite) {
                 this.sprite.x = this.x;
                 this.sprite.y = this.y;
             }
             if (this.onStep) this.onStep();
         };
-    }
+    };
+
+    global.Timer = function (value) {
+        value = value * 1000;
+        let count = value;
+        this.tick = () => {
+            count = count > 0 ? count - 1 : 0;
+            return this;
+        };
+        this.timedOut = () => {
+            return count <= 0;
+        };
+        this.zeroOut = () => {
+            count = 0;
+            return this;
+        };
+        this.reset = () => {
+            count = value;
+            return this;
+        };
+    };
 };

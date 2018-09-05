@@ -3,7 +3,9 @@ module.exports = function () {
         this.owner = null;
         this.radius = 2.5;
         this.speed = 15;
-        this.sprite = new _Sprite('bullet01');
+        this.sprite = new _Sprite(this.x, this.y, 'bullet01');
+        this.body = new _CircleBody(this.x, this.y, 10);
+        this.damage = 5;
     };
 
     this.onStep = () => {
@@ -12,5 +14,13 @@ module.exports = function () {
         this.y = this.y + this.speed * Math.sin(this.direction * Math.PI / 180);
 
         if (this.x > World.viewport.width || this.x < 0 || this.y > World.viewport.height || this.y < 0) destroy(this);
+    };
+
+    this.onCollision = {
+        'Player': (player) => {
+            if (player._id === this.owner._id || !player._draw) return;
+            player.health -= this.damage;
+            destroy(this);
+        }
     };
 };

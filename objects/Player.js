@@ -1,19 +1,16 @@
 module.exports = function () {
     this.onCreate = () => {
         this.health = 100;
-        this.rank = 0;
-        this.score = 0;
-        this.color = 'rgb(' + random(150, 255) + ', ' + random(150, 255) + ', ' + random(150, 255) + ')';
-        this.fireRate = 20;
-        this.trigger = 0;
+        this.fireRate = new Timer(0.02, true);
+        this.fireRate.zeroOut();
         this.sprite = new _Sprite(this.x, this.y, 'craft01');
-        this.body = new _SphereBody(this.x, this.y, 25);
+        this.body = new _CircleBody(this.x, this.y, 20);
         this.sprite.angle = this.direction;
     };
 
     this.onStep = () => {
-        let rotX = this.controller.mouse.X - this.x;
-        let rotY = this.controller.mouse.Y - this.y;
+        let rotX = this._input.mouse.X - this.x;
+        let rotY = this._input.mouse.Y - this.y;
 
         this.direction = Math.atan2(rotY, rotX) / Math.PI * 180;
         if (this.direction < 0) {
@@ -33,19 +30,18 @@ module.exports = function () {
         this.sprite.x = this.x;
         this.sprite.y = this.y;
 
-        if (this.controller.mouse.L) {
-            if (this.trigger === 0) {
-                let bullet = createInstance('Bullet');
-                bullet.owner = this;
-                bullet.x = this.x;
-                bullet.y = this.y;
-                bullet.direction = this.direction;
-            }
-            this.trigger = this.trigger < 0 ?  this.fireRate : this.trigger - 1;
-        } else {
-            this.trigger = 0;
+        this.fireRate.tick();
+        if (this._input.mouse.L && this.fireRate.timedOut()) {
+            let bullet = createInstance('Bullet');
+            bullet.owner = this;
+            bullet.x = this.x;
+            bullet.y = this.y;
+            bullet.direction = this.direction;
+            this.fireRate.reset();
         }
 
         this.sprite.angle = this.direction;
+
+        if (this.health <= 0) destroy(this, false);
     };
 };

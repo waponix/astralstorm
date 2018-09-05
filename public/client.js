@@ -34,7 +34,7 @@ $(document).ready(function (initial) {
         _objects = data;
     });
 
-    controller = {
+    _input = {
         mouse: {X: infos.elem.width * 0.5, Y: infos.elem.height * 0.5}
     };
 
@@ -43,30 +43,30 @@ $(document).ready(function (initial) {
         if (document.pointerLockElement === infos.elem || document.mozPointerLockElement === infos.elem) {
             let key = String.fromCharCode(e.which || e.keyCode).toUpperCase();
             let mouseKey = ['L', 'M', 'R'];
-            if (!controller.keyPress) controller.keyPress = {};
+            if (!_input.keyPress) _input.keyPress = {};
             switch (e.type) {
                 case 'keydown':
-                    controller.keyPress[key] = true;
+                    _input.keyPress[key] = true;
                     break;
                 case 'keyup':
-                    delete controller.keyPress[key];
+                    delete _input.keyPress[key];
                     break;
                 case 'mousedown':
-                    controller.mouse[mouseKey[(e.which || e.keyCode) - 1]] = true;
+                    _input.mouse[mouseKey[(e.which || e.keyCode) - 1]] = true;
                     break;
                 case 'mouseup':
-                    delete controller.mouse[mouseKey[(e.which || e.keyCode) - 1]];
+                    delete _input.mouse[mouseKey[(e.which || e.keyCode) - 1]];
             }
         }
     });
 
     infos.elem.addEventListener('mousemove', (e) => {
         if (document.pointerLockElement === infos.elem || document.mozPointerLockElement === infos.elem) {
-            controller.mouse.X += e.movementX;
-            controller.mouse.Y += e.movementY;
+            _input.mouse.X += e.movementX;
+            _input.mouse.Y += e.movementY;
 
-            controller.mouse.X = Math.max(0, Math.min(controller.mouse.X, infos.elem.width));
-            controller.mouse.Y = Math.max(0, Math.min(controller.mouse.Y, infos.elem.height));
+            _input.mouse.X = Math.max(0, Math.min(_input.mouse.X, infos.elem.width));
+            _input.mouse.Y = Math.max(0, Math.min(_input.mouse.Y, infos.elem.height));
         }
     }, false);
 
@@ -77,7 +77,7 @@ $(document).ready(function (initial) {
         requestAnimationFrame(step);
         if (!playerKey && !_objects && !_assets) return;
 
-        socket.emit('io::update', {key: playerKey, io: controller});
+        socket.emit('io::update', {key: playerKey, io: _input});
 
         game.clear();
         infos.clear();
@@ -92,20 +92,20 @@ $(document).ready(function (initial) {
                 //draw player cursor
                 if (data.id === playerKey) {
                     let mColor = '#FFFFFF';
-                    infos.draw(data.controller.mouse.X - 10, data.controller.mouse.Y, 20, 1, mColor);
-                    infos.draw(data.controller.mouse.X, data.controller.mouse.Y - 10, 1, 20, mColor);
-                    infos.draw(data.controller.mouse.X - 15, data.controller.mouse.Y - 15, 10, 1, mColor);
-                    infos.draw(data.controller.mouse.X + 5, data.controller.mouse.Y + 15, 10, 1, mColor);
-                    infos.draw(data.controller.mouse.X + 5, data.controller.mouse.Y - 15, 10, 1, mColor);
-                    infos.draw(data.controller.mouse.X - 15, data.controller.mouse.Y + 15, 10, 1, mColor);
-                    infos.draw(data.controller.mouse.X - 15, data.controller.mouse.Y - 15, 1, 10, mColor);
-                    infos.draw(data.controller.mouse.X + 15, data.controller.mouse.Y + 5, 1, 10, mColor);
-                    infos.draw(data.controller.mouse.X + 15, data.controller.mouse.Y - 15, 1, 10, mColor);
-                    infos.draw(data.controller.mouse.X - 15, data.controller.mouse.Y + 5, 1, 10, mColor);
+                    infos.draw(data._input.mouse.X - 10, data._input.mouse.Y, 20, 1, mColor);
+                    infos.draw(data._input.mouse.X, data._input.mouse.Y - 10, 1, 20, mColor);
+                    infos.draw(data._input.mouse.X - 15, data._input.mouse.Y - 15, 10, 1, mColor);
+                    infos.draw(data._input.mouse.X + 5, data._input.mouse.Y + 15, 10, 1, mColor);
+                    infos.draw(data._input.mouse.X + 5, data._input.mouse.Y - 15, 10, 1, mColor);
+                    infos.draw(data._input.mouse.X - 15, data._input.mouse.Y + 15, 10, 1, mColor);
+                    infos.draw(data._input.mouse.X - 15, data._input.mouse.Y - 15, 1, 10, mColor);
+                    infos.draw(data._input.mouse.X + 15, data._input.mouse.Y + 5, 1, 10, mColor);
+                    infos.draw(data._input.mouse.X + 15, data._input.mouse.Y - 15, 1, 10, mColor);
+                    infos.draw(data._input.mouse.X - 15, data._input.mouse.Y + 5, 1, 10, mColor);
                     infos.ctx.strokeStyle = mColor;
                     infos.ctx.beginPath();
                     infos.ctx.lineWidth = 1;
-                    infos.ctx.arc(data.controller.mouse.X + 0.5, data.controller.mouse.Y + 0.5, 5, 0, 2 * Math.PI);
+                    infos.ctx.arc(data._input.mouse.X + 0.5, data._input.mouse.Y + 0.5, 5, 0, 2 * Math.PI);
                     infos.ctx.stroke();
                 }
             }

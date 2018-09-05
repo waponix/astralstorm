@@ -14,29 +14,16 @@ module.exports = () => {
     };
 
     //check for collision
-    global.collide = (obj1, obj2, filter) => {
-        let result = {};
-        result.result = false;
-        let keys = Object.keys(obj2);
+    global.collide = (obj1, obj2) => {
+        if (!obj1.body && !obj2.body) return false;
+        let body1 = obj1.body;
+        let body2 = obj2.body;
 
-        for (let i = 0; i < keys.length; i++) {
-            let key = keys[i];
-            let col1 = obj1.collide;
-            let col2 = obj2[key].collide;
+        let dx = body1.x - body2.x;
+        let dy = body1.y - body2.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
 
-            let dx = col1.x - col2.x;
-            let dy = col1.y - col2.y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (key != filter && distance < col1.radius + col2.radius) {
-                result.key = key;
-                result.x = col1.x;
-                result.y = col2.y;
-                result.result = true;
-            }
-        }
-
-        return result;
+        return distance < body1.radius + body2.radius;
     };
 
     //helper for creating object instances
@@ -44,10 +31,9 @@ module.exports = () => {
         let obj = require('../../objects/' + objName);
         let instance = {
             _instanceOf: objName,
-            _id: id.generate()
+            _id: objName.toLowerCase() + '::' + id.generate()
         };
-        let objKey = objName + 's';
-        objKey = objKey.replace(/ys$/i, 'ies');
+        let objKey = pluralize(objName);
         _Object.call(instance);
         obj.call(instance);
         if (!World._objects[objKey]) World._objects[objKey] = [];
@@ -58,8 +44,8 @@ module.exports = () => {
     };
 
     //destroy object instance
-    global.destroy = (object) => {
-        if (object._destroy) object._destroy();
+    global.destroy = (object, inMemory = true) => {
+        if (object._destroy) object._destroy(inMemory);
     };
 
     //mainly updates the objects in the game
@@ -73,4 +59,11 @@ module.exports = () => {
             }
         }
     };
+
+    //turn a noun into it's plural form
+    global.pluralize = (noun) => {
+        noun = noun+ 's';
+        noun = noun.replace(/ys$/i, 'ies');
+        return noun;
+    }
 };

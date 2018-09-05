@@ -175,7 +175,8 @@ function Canvas(target, o) {
     };
 
     this.drawSprite = function (object) {
-        if (!object._draw && !object.sprite) return;
+        if (!object._draw) return;
+        if (!object.sprite) return;
         if (!_assets || !_assets[object.sprite.data]) return;
         let sprite = object.sprite;
         sprite.data = _assets[sprite.data];

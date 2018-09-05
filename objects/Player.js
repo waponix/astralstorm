@@ -6,7 +6,8 @@ module.exports = function () {
         this.color = 'rgb(' + random(150, 255) + ', ' + random(150, 255) + ', ' + random(150, 255) + ')';
         this.fireRate = 20;
         this.trigger = 0;
-        this.sprite = new _Sprite('craft01');
+        this.sprite = new _Sprite(this.x, this.y, 'craft01');
+        this.body = new _SphereBody(this.x, this.y, 25);
         this.sprite.angle = this.direction;
     };
 

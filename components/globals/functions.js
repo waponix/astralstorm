@@ -53,7 +53,7 @@ module.exports = () => {
         if (!World._objects[objKey]) World._objects[objKey] = [];
         World._objects[objKey].push(instance);
         instance._objGroup = objKey;
-        if (instance.onCreate) instance.onCreate();
+        if (instance._create) instance._create();
         return instance;
     };
 

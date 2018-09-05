@@ -7,31 +7,36 @@ module.exports = () => {
         this.h = null;
         this.direction = 0;
         this.sprite = null;
+        this.body = null;
         this.speed = 0;
-        this._draw = false;
+        this._draw = true;
 
         this.controller = {
             keyPress: {},
             mouse: {X: 0, Y: 0}
         };
 
-        this._destroy = () => {
+        this._destroy = (inMemory = true) => {
             let index = World._objects[this._objGroup].find((obj) => {
                 return obj._id === this._id;
             });
-            World._objects[this._objGroup].splice(index, 1);
+            if (index < 0) return;
+            if (this.onDestroy) this.onDestroy();
+            if (inMemory) {
+                World._objects[this._objGroup].splice(index, 1);
+            } else {
+                this._draw = false;
+            }
         };
 
         this._create = () => {
             if (this.onCreate) this.onCreate();
-            if (this.sprite) {
-                this.sprite.x = this.x;
-                this.sprite.y = this.y;
-            }
         };
 
         this._update = () => {
             if (this.sprite) {
+                this.body.x = this.x;
+                this.body.y = this.y;
                 this.sprite.x = this.x;
                 this.sprite.y = this.y;
             }

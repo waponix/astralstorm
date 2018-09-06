@@ -13,7 +13,7 @@ module.exports = function () {
         this.x = this.x + this.speed * Math.cos(this.direction * Math.PI / 180);
         this.y = this.y + this.speed * Math.sin(this.direction * Math.PI / 180);
 
-        if (this.x > World.viewport.width || this.x < 0 || this.y > World.viewport.height || this.y < 0) destroy(this);
+        if (this.x > World.dimension.width || this.x < 0 || this.y > World.dimension.height || this.y < 0) destroy(this);
     };
 
     this.onCollision = {

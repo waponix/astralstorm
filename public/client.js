@@ -7,13 +7,14 @@ $(document).ready(function (initial) {
     });
 
     /*GAME VARIABLES*/
-    let game = new Canvas('#game-world', {width: 1366, height: 768});
+    let game = new Canvas('#game-world', {width: $(window).width(), height: $(window).height()});
     let infos = new Canvas('#infos', {width: $(window).width(), height: $(window).height()});
 
     let socket = io();
 
     playerKey = null;
     _objects = null;
+    _world = null;
     _assets = null;
     //pointer lock canvas on click
     document.onclick = () => {
@@ -28,6 +29,9 @@ $(document).ready(function (initial) {
 
     socket.once('assets::load', (data) => {
         _assets = data;
+    });
+    socket.once('world::load', (data) => {
+        _world = data;
     });
 
     socket.on('objects::update', function (data) {
@@ -77,39 +81,64 @@ $(document).ready(function (initial) {
         requestAnimationFrame(step);
         if (!playerKey && !_objects && !_assets) return;
 
-        socket.emit('io::update', {key: playerKey, io: _input});
-
         game.clear();
         infos.clear();
 
-        for (let group in _objects) {
-            let entities = _objects[group];
-            for (let i in entities) {
-                let data = entities[i];
-                //draw objects;
-                game.drawSprite(data);
+        let main = _objects ? _objects.find((obj) => {
+            return obj.id === playerKey;
+        }) : null;
 
-                //draw player cursor
-                if (data.id === playerKey) {
-                    let mColor = '#FFFFFF';
-                    infos.draw(data._input.mouse.X - 10, data._input.mouse.Y, 20, 1, mColor);
-                    infos.draw(data._input.mouse.X, data._input.mouse.Y - 10, 1, 20, mColor);
-                    infos.draw(data._input.mouse.X - 15, data._input.mouse.Y - 15, 10, 1, mColor);
-                    infos.draw(data._input.mouse.X + 5, data._input.mouse.Y + 15, 10, 1, mColor);
-                    infos.draw(data._input.mouse.X + 5, data._input.mouse.Y - 15, 10, 1, mColor);
-                    infos.draw(data._input.mouse.X - 15, data._input.mouse.Y + 15, 10, 1, mColor);
-                    infos.draw(data._input.mouse.X - 15, data._input.mouse.Y - 15, 1, 10, mColor);
-                    infos.draw(data._input.mouse.X + 15, data._input.mouse.Y + 5, 1, 10, mColor);
-                    infos.draw(data._input.mouse.X + 15, data._input.mouse.Y - 15, 1, 10, mColor);
-                    infos.draw(data._input.mouse.X - 15, data._input.mouse.Y + 5, 1, 10, mColor);
-                    infos.ctx.strokeStyle = mColor;
-                    infos.ctx.beginPath();
-                    infos.ctx.lineWidth = 1;
-                    infos.ctx.arc(data._input.mouse.X + 0.5, data._input.mouse.Y + 0.5, 5, 0, 2 * Math.PI);
-                    infos.ctx.stroke();
-                }
-            }
-        };
+        //draw background
+        for (let i = 0; i <= _world.width; i += 50) {
+            game.ctx.strokeStyle = '#1f1f1f';
+            game.ctx.setLineDash([1, 5]);
+            game.ctx.beginPath();
+            game.ctx.moveTo(i, 0);
+            game.ctx.lineTo(i, _world.height);
+            game.ctx.stroke();
+        }
+
+        for (let i = 0; i <= _world.height; i += 50) {
+            game.ctx.strokeStyle = '#1f1f1f';
+            game.ctx.setLineDash([1, 5]);
+            game.ctx.beginPath();
+            game.ctx.moveTo(0, i);
+            game.ctx.lineTo(_world.width, i);
+            game.ctx.stroke();
+        }
+
+        for (let i in _objects) {
+            let data = _objects[i];
+            //draw objects;
+            game.drawSprite(data);
+        }
+
+        if (!!main && !main.destroyed) {
+            //draw player cursor
+            let mColor = '#FFFFFF';
+            infos.ctx.save();
+            infos.ctx.translate(main._input.mouse.X, main._input.mouse.Y);
+            infos.draw(0 - 10, 0, 20, 1, mColor);
+            infos.draw(0, 0 - 10, 1, 20, mColor);
+            infos.draw(0 - 15, 0 - 15, 10, 1, mColor);
+            infos.draw(0 + 5, 0 + 15, 10, 1, mColor);
+            infos.draw(0 + 5, 0 - 15, 10, 1, mColor);
+            infos.draw(0 - 15, 0 + 15, 10, 1, mColor);
+            infos.draw(0 - 15, 0 - 15, 1, 10, mColor);
+            infos.draw(0 + 15, 0 + 5, 1, 10, mColor);
+            infos.draw(0 + 15, 0 - 15, 1, 10, mColor);
+            infos.draw(0 - 15, 0 + 5, 1, 10, mColor);
+            infos.ctx.strokeStyle = mColor;
+            infos.ctx.beginPath();
+            infos.ctx.lineWidth = 1;
+            infos.ctx.arc(0 + 0.5, 0 + 0.5, 5, 0, 2 * Math.PI);
+            infos.ctx.stroke();
+            infos.ctx.restore();
+        }
+
+        if (!!main && !main.destroyed) game.follow(main);
+
+        socket.emit('io::update', {key: playerKey, io: _input});
     };
 });
 
@@ -157,6 +186,7 @@ function pointerLock(canvas) {
 function Canvas(target, o) {
     this.elem = document.querySelector(target);
     this.ctx = this.elem.getContext('2d');
+    this.pan = {x: 0, y: 0};
 
     this.elem.width = o.width;
     this.elem.height = o.height;
@@ -204,30 +234,12 @@ function Canvas(target, o) {
                 case 'cp': this.ctx.closePath(); break;
                 case 'mt': this.ctx.moveTo(v[0], v[1]); break;
                 case 'lt': this.ctx.lineTo(v[0], v[1]); break;
-                case 'a': this.ctx.arc(v[0], v[1], v[2], v[3], v[4], v[5]);
+                case 'a': this.ctx.arc(v[0], v[1], v[2], v[3], v[4], v[5]); break;
                 case 'at': this.ctx.arcTo(v[0], v[1], v[2], v[3], v[4]); break;
                 case 'qct': this.ctx.quadraticCurveTo(v[0], v[1], v[2], v[3]); break;
                 case 'bct': this.ctx.bezierCurveTo(v[0], v[1], v[2], v[3], v[4], v[5]); break;
             }
         }
-        this.ctx.restore();
-    };
-
-    this.drawImg = function (x, y, w, h, path, opacity, rotation) {
-        if (opacity) {
-            this.ctx.globalAlpha = opacity;
-        }
-        let img = new Image();
-        img.src = path;
-
-        img.onload = function () {
-            this.ctx.save();
-            this.ctx.translate(x, y);
-            this.ctx.rotate(rotation * Math.PI / 180);
-            this.ctx.drawImage(0 - (w / 2), 0 - (h / 2), w, h);
-            this.ctx.globalAlpha = 1;
-        }
-
         this.ctx.restore();
     };
 
@@ -243,4 +255,8 @@ function Canvas(target, o) {
     this.clear = function () {
         this.ctx.clearRect(0, 0, this.elem.width, this.elem.height);
     };
+
+    this.follow = function (object) {
+
+    }
 }

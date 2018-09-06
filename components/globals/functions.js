@@ -2,9 +2,9 @@ let id = require('shortid');
 
 module.exports = () => {
     //array sorter
-    global.sort = (array, desc, key) => {
+    global.sort = (array, key, desc = false) => {
         return array.sort(function (a, b) {
-            return desc === true ? ~~(key ? a[key] > b[key] : a > b)
+            return desc === false ? ~~(key ? a[key] > b[key] : a > b)
                 : ~~(key ? a[key] < b[key] : a < b);
         });
     };
@@ -65,5 +65,11 @@ module.exports = () => {
         noun = noun+ 's';
         noun = noun.replace(/ys$/i, 'ies');
         return noun;
+    };
+
+    global.pointDistance = (x1, y1, x2, y2) => {
+        let x = x2 - x1;
+        let y = y2 - y1;
+        return Math.sqrt((x * x) + (y * y));
     }
 };

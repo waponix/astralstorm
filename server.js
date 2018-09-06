@@ -20,6 +20,7 @@ app.get('/', function (req, res) {
 
 io.on('connection', function (socket) {
     socket.emit('assets::load', assets);
+    socket.emit('world::load', World.dimension);
 
     socket.on('disconnect', function () {
         for (let key in World._objects.Players) {
@@ -60,6 +61,6 @@ server.listen(3000, function () {
     setInterval(function () {
         if (!Object.keys(World._objects).length) return;
         update();
-        io.emit('objects::update', World._objects);
+        io.emit('objects::update', World.arrayObjects());
     }, 10);
 });

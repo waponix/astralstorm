@@ -1,6 +1,7 @@
 module.exports = function () {
     this.onCreate = () => {
         this.health = 100;
+        this.destroyed = false;
         this.fireRate = new Timer(0.02, true);
         this.fireRate.zeroOut();
         this.sprite = new _Sprite(this.x, this.y, 'craft01');
@@ -9,6 +10,9 @@ module.exports = function () {
     };
 
     this.onStep = () => {
+        if (this.health <= 0) destroy(this, false);
+        if (this.destroyed) return;
+
         let rotX = this._input.mouse.X - this.x;
         let rotY = this._input.mouse.Y - this.y;
 
@@ -41,7 +45,9 @@ module.exports = function () {
         }
 
         this.sprite.angle = this.direction;
+    };
 
-        if (this.health <= 0) destroy(this, false);
+    this.onDestroy = () => {
+        this.destroyed = true;
     };
 };

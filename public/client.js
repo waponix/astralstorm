@@ -154,7 +154,6 @@ function pointerLock(canvas) {
 }
 
 /*Objects*/
-
 function Canvas(target, o) {
     this.elem = document.querySelector(target);
     this.ctx = this.elem.getContext('2d');

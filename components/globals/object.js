@@ -10,6 +10,7 @@ module.exports = () => {
         this.body = null;
         this.speed = 0;
         this._draw = true;
+        this.depth = 0;
 
         this._input = {
             keyPress: {},
@@ -83,5 +84,13 @@ module.exports = () => {
             count = value;
             return this;
         };
+    };
+
+    global.UI = function () {
+        this.x = 0;
+        this.y = 0;
+        this.w = 0;
+        this.h = 0;
+        this.sprite = null;
     };
 };

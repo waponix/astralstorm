@@ -1,7 +1,7 @@
 # astralstorm
 Learning how to make a game in NodeJS
 
-###Installation
+##Installation
 To those who wants to try the game, just go on and clone this repo (just don't expect to much XD)
 ```
 git clone https://github.com/ericbermejoreyes/astralstorm

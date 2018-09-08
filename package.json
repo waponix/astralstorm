@@ -12,6 +12,7 @@
     "express": "^4.10.2",
     "file-system": "^2.2.2",
     "shortid": "^2.2.13",
-    "socket.io": "^1.7.4"
+    "socket.io": "^1.7.4",
+    "uuid": "^3.3.2"
   }
 }

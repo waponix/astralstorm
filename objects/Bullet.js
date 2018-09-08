@@ -19,7 +19,6 @@ module.exports = function () {
     this.onCollision = {
         'Player': (player) => {
             if (player._id === this.owner._id || !player._draw) return;
-            player.health -= this.damage;
             destroy(this);
         }
     };

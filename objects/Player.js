@@ -24,10 +24,9 @@ module.exports = function () {
             this.direction = 360 + this.direction;
         }
 
-        let dis = pointDistance(this.x, this.y, this._input.mouse.X, this._input.mouse.Y);
-        dis = (dis / 50 < 8) ? dis / 50 : 8;
-        this.speed = dis;
-        this.speed = this.speed > 10 ? 10 : this.speed;
+        let distanceFromPointer = pointDistance(this.x, this.y, this._input.mouse.X, this._input.mouse.Y);
+        this.speed = distanceFromPointer / 50;
+        this.speed = limit(this.speed, this.speed, 6);
         this.x = this.x + this.speed * Math.cos(this.direction * Math.PI / 180);
         this.y = this.y + this.speed * Math.sin(this.direction * Math.PI / 180);
         this.x = (this.x <= 70) ? 70 : this.x;

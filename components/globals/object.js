@@ -20,14 +20,10 @@ module.exports = () => {
         };
 
         this._destroy = (inMemory) => {
-            let index = World._objects[this._objGroup].find((obj) => {
-                return obj._id === this._id;
-            });
-            if (index < 0) return;
             if (this.onDestroy) this.onDestroy();
             if (inMemory) {
                 //totaly remove object from stack
-                World._objects[this._objGroup].splice(index, 1);
+                delete World._objects[pluralize(this._instanceOf)][this._id];
             } else {
                 //only restrict the object from being drawn
                 this._draw = false;

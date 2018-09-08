@@ -158,7 +158,8 @@ function pointerLock(canvas) {
 
 /*Objects*/
 function Canvas(target, o) {
-    this.elem = document.querySelector(target);
+    this.elem = document.createElement('canvas');
+    document.body.appendChild(this.elem);
     this.ctx = this.elem.getContext('2d');
     this.pan = {x: 0, y: 0};
     this.bound = {x: this.pan.x, y: this.pan.y, w: this.pan.x + this.elem.width, h: this.pan.y + this.elem.height};
@@ -186,9 +187,15 @@ function Canvas(target, o) {
         this.ctx.restore();
     };
 
+    this.inBound = (obj) => {
+        let offset = 100;
+        return obj.x <= this.bound.w + offset && obj.x >= this.bound.x - offset && obj.y <= this.bound.h + offset && obj.y >= this.bound.y - offset;
+    };
+
     this.drawPath = (object) => {
         if (!object._draw) return;
         if (!object.sprite) return;
+        if (!this.inBound(object)) return;
         if (!_assets || !_assets[object.sprite.data]) return;
         let sprite = object.sprite;
         sprite.data = _assets[sprite.data];

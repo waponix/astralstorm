@@ -27,7 +27,7 @@ io.on('connection', function (socket) {
             let player = World._objects.Players[key];
 
             if (player.socketId === socket.id) {
-                World._objects.Players.splice(key, 1);
+                delete World._objects.Players[key];
             }
         }
     });
@@ -42,10 +42,12 @@ io.on('connection', function (socket) {
 
     socket.on('io::update', (data) => {
         if (World._objects.Players) {
-            let player = World._objects.Players.find((player) => {
-                if (!player) return false;
-                return player.id === data.key && player.socketId === socket.id;
-            });
+            let player;
+            for (let i in World._objects.Players) {
+                if (World._objects.Players[i].id === data.key && World._objects.Players[i].socketId === socket.id) {
+                    player = World._objects.Players[i];
+                }
+            }
             if (player) {
                 for (let i in data.io) {
                     player._input[i] = data.io[i];

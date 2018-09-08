@@ -1,4 +1,5 @@
 let id = require('shortid');
+let uuid = require('uuid/v4');
 
 module.exports = () => {
     //array sorter
@@ -31,14 +32,13 @@ module.exports = () => {
         let obj = require('../../objects/' + objName);
         let instance = {
             _instanceOf: objName,
-            _id: objName.toLowerCase() + '::' + id.generate()
+            _id: id.generate() + ':' + uuid()
         };
         let objKey = pluralize(objName);
         _Object.call(instance);
         obj.call(instance);
-        if (!World._objects[objKey]) World._objects[objKey] = [];
-        World._objects[objKey].push(instance);
-        instance._objGroup = objKey;
+        if (!World._objects[objKey]) World._objects[objKey] = {};
+        World._objects[objKey][instance._id] = instance;
         if (instance._create) instance._create();
         return instance;
     };
@@ -52,7 +52,7 @@ module.exports = () => {
     global.update = () => {
         for (let a in World._objects) {
             let entities = World._objects[a];
-            if (entities.length) {
+            if (Object.keys(entities).length) {
                 for (let i in entities) {
                     entities[i]._update();
                 }
@@ -71,5 +71,9 @@ module.exports = () => {
         let x = x2 - x1;
         let y = y2 - y1;
         return Math.sqrt((x * x) + (y * y));
-    }
+    };
+
+    global.limit = (value, min, max) => {
+        return Math.min(Math.max(value, min), max);
+    };
 };

@@ -28,19 +28,9 @@
             image-rendering: pixelated; /* Awesome future-browsers       */
             -ms-interpolation-mode: nearest-neighbor; /* IE                            */
         }
-
-        #infos {
-            position: fixed;
-            top: 0;
-            left: 0;
-        }
-
     </style>
 </head>
-<body oncontextmenu="return false">
-<canvas id="game-world"></canvas>
-<canvas id="infos"></canvas>
-
+<body>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
 <script src="client.js"></script>

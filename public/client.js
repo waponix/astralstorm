@@ -243,7 +243,12 @@ function Canvas(target, o) {
     };
 
     this.clear = function () {
-        this.ctx.clearRect(this.bound.x, this.bound.y, this.elem.width, this.elem.height);
+        let square = 50;
+        for (let xi = 0; xi <= this.elem.width; xi += 50) {
+            for (let yi = 0; yi <= this.elem.height; yi += 50) {
+                this.ctx.clearRect(this.bound.x + xi, this.bound.y + yi, square, square);
+            }
+        }
     };
 
     //make the viewport follow an object always call this.restore at the very end of each step

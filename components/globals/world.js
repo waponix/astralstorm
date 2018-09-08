@@ -9,7 +9,8 @@ module.exports = () => {
         arrayObjects: function () {
             let arrayObjects = [];
             for (let g in this._objects) {
-                arrayObjects = arrayObjects.concat(this._objects[g]);
+                let objects = this._objects[g];
+                arrayObjects = arrayObjects.concat(objects);
             }
             sort(arrayObjects, 'depth');
             return arrayObjects;

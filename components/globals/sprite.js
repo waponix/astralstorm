@@ -6,5 +6,9 @@ module.exports = () => {
         this.angle = 0;
         this.x = x;
         this.y = y;
+        this._update = (owner) => {
+            this.x = owner.x;
+            this.y = owner.y;
+        }
     };
 };

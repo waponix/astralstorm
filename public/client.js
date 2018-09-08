@@ -6,16 +6,14 @@ $(document).ready(function (initial) {
         return confirmationMessage;
     });
 
-    /*GAME VARIABLES*/
     let game = new Canvas('#game-world', {width: $(window).width(), height: $(window).height()});
-    let infos = new Canvas('#infos', {width: $(window).width(), height: $(window).height()});
-
     let socket = io();
 
     playerKey = null;
     _objects = null;
     _world = null;
     _assets = null;
+
     //pointer lock canvas on click
     document.onclick = () => {
         let name = '';
@@ -24,7 +22,7 @@ $(document).ready(function (initial) {
             playerKey = name + random(1000, 1000000);
             socket.emit('player::new', {key: playerKey, name});
         }
-        pointerLock(infos.elem);
+        pointerLock(game.elem);
     };
 
     socket.once('assets::load', (data) => {
@@ -39,17 +37,18 @@ $(document).ready(function (initial) {
     });
 
     _input = {
-        mouse: {X: infos.elem.width * 0.5, Y: infos.elem.height * 0.5}
+        mouse: {X: game.elem.width * 0.5, Y: game.elem.height * 0.5}
     };
 
     //event listeners for user input
     $(document).on('keydown keyup mousedown mouseup', (e) => {
-        if (document.pointerLockElement === infos.elem || document.mozPointerLockElement === infos.elem) {
+        if (document.pointerLockElement === game.elem || document.mozPointerLockElement === game.elem) {
             let key = String.fromCharCode(e.which || e.keyCode).toUpperCase();
             let mouseKey = ['L', 'M', 'R'];
             if (!_input.keyPress) _input.keyPress = {};
             switch (e.type) {
                 case 'keydown':
+                    e.preventDefault();
                     _input.keyPress[key] = true;
                     break;
                 case 'keyup':
@@ -64,13 +63,13 @@ $(document).ready(function (initial) {
         }
     });
 
-    infos.elem.addEventListener('mousemove', (e) => {
-        if (document.pointerLockElement === infos.elem || document.mozPointerLockElement === infos.elem) {
-            _input.mouse.X += e.movementX;
-            _input.mouse.Y += e.movementY;
+    mouseX = game.elem.width * 0.5;
+    mouseY = game.elem.height * 0.5;
 
-            _input.mouse.X = Math.max(0, Math.min(_input.mouse.X, infos.elem.width));
-            _input.mouse.Y = Math.max(0, Math.min(_input.mouse.Y, infos.elem.height));
+    game.elem.addEventListener('mousemove', (e) => {
+        if (document.pointerLockElement === game.elem || document.mozPointerLockElement === game.elem) {
+            mouseX += e.movementX;
+            mouseY += e.movementY;
         }
     }, false);
 
@@ -81,26 +80,27 @@ $(document).ready(function (initial) {
         requestAnimationFrame(step);
         if (!playerKey && !_objects && !_assets) return;
 
-        game.clear();
-        infos.clear();
-
         let main = _objects ? _objects.find((obj) => {
             return obj.id === playerKey;
         }) : null;
 
+        if (!!main) game.follow(main);
+
+        socket.emit('io::update', {key: playerKey, io: _input});
+
+        game.clear();
+
+        game.ctx.strokeStyle = '#0f0f0f';
+        // game.ctx.setLineDash([2, 10]);
         //draw background
-        for (let i = 0; i <= _world.width; i += 50) {
-            game.ctx.strokeStyle = '#1f1f1f';
-            game.ctx.setLineDash([1, 5]);
+        for (let i = 0; i <= _world.width; i += 100) {
             game.ctx.beginPath();
             game.ctx.moveTo(i, 0);
             game.ctx.lineTo(i, _world.height);
             game.ctx.stroke();
         }
 
-        for (let i = 0; i <= _world.height; i += 50) {
-            game.ctx.strokeStyle = '#1f1f1f';
-            game.ctx.setLineDash([1, 5]);
+        for (let i = 0; i <= _world.height; i += 100) {
             game.ctx.beginPath();
             game.ctx.moveTo(0, i);
             game.ctx.lineTo(_world.width, i);
@@ -110,35 +110,34 @@ $(document).ready(function (initial) {
         for (let i in _objects) {
             let data = _objects[i];
             //draw objects;
-            game.drawSprite(data);
+            game.drawPath(data);
         }
+
+        game.restore();
 
         if (!!main && !main.destroyed) {
             //draw player cursor
             let mColor = '#FFFFFF';
-            infos.ctx.save();
-            infos.ctx.translate(main._input.mouse.X, main._input.mouse.Y);
-            infos.draw(0 - 10, 0, 20, 1, mColor);
-            infos.draw(0, 0 - 10, 1, 20, mColor);
-            infos.draw(0 - 15, 0 - 15, 10, 1, mColor);
-            infos.draw(0 + 5, 0 + 15, 10, 1, mColor);
-            infos.draw(0 + 5, 0 - 15, 10, 1, mColor);
-            infos.draw(0 - 15, 0 + 15, 10, 1, mColor);
-            infos.draw(0 - 15, 0 - 15, 1, 10, mColor);
-            infos.draw(0 + 15, 0 + 5, 1, 10, mColor);
-            infos.draw(0 + 15, 0 - 15, 1, 10, mColor);
-            infos.draw(0 - 15, 0 + 5, 1, 10, mColor);
-            infos.ctx.strokeStyle = mColor;
-            infos.ctx.beginPath();
-            infos.ctx.lineWidth = 1;
-            infos.ctx.arc(0 + 0.5, 0 + 0.5, 5, 0, 2 * Math.PI);
-            infos.ctx.stroke();
-            infos.ctx.restore();
+            game.ctx.setLineDash([]);
+            game.ctx.save();
+            game.ctx.translate(mouseX, mouseY);
+            game.draw(0 - 10, 0, 20, 1, mColor);
+            game.draw(0, 0 - 10, 1, 20, mColor);
+            game.draw(0 - 15, 0 - 15, 10, 1, mColor);
+            game.draw(0 + 5, 0 + 15, 10, 1, mColor);
+            game.draw(0 + 5, 0 - 15, 10, 1, mColor);
+            game.draw(0 - 15, 0 + 15, 10, 1, mColor);
+            game.draw(0 - 15, 0 - 15, 1, 10, mColor);
+            game.draw(0 + 15, 0 + 5, 1, 10, mColor);
+            game.draw(0 + 15, 0 - 15, 1, 10, mColor);
+            game.draw(0 - 15, 0 + 5, 1, 10, mColor);
+            game.ctx.strokeStyle = mColor;
+            game.ctx.beginPath();
+            game.ctx.lineWidth = 1;
+            game.ctx.arc(0 + 0.5, 0 + 0.5, 5, 0, 2 * Math.PI);
+            game.ctx.stroke();
+            game.ctx.restore();
         }
-
-        if (!!main && !main.destroyed) game.follow(main);
-
-        socket.emit('io::update', {key: playerKey, io: _input});
     };
 });
 
@@ -152,31 +151,6 @@ function promptIGN(msg) {
     return IGN ? IGN : promptIGN(msg);
 }
 
-function collision(obj1, obj2, filter) {
-    let result = {};
-    result.result = false;
-    let keys = Object.keys(obj2);
-
-    for (let i = 0; i < keys.length; i++) {
-        let key = keys[i];
-        let col1 = obj1.collide;
-        let col2 = obj2[key].collide;
-
-        let dx = col1.x - col2.x;
-        let dy = col1.y - col2.y;
-        let distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (key != filter && distance < col1.radius + col2.radius) {
-            result.key = key;
-            result.x = col1.x;
-            result.y = col2.y;
-            result.result = true;
-        }
-    }
-
-    return result;
-}
-
 function pointerLock(canvas) {
     canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
     canvas.requestPointerLock();
@@ -187,6 +161,7 @@ function Canvas(target, o) {
     this.elem = document.querySelector(target);
     this.ctx = this.elem.getContext('2d');
     this.pan = {x: 0, y: 0};
+    this.bound = {x: this.pan.x, y: this.pan.y, w: this.pan.x + this.elem.width, h: this.pan.y + this.elem.height};
 
     this.elem.width = o.width;
     this.elem.height = o.height;
@@ -203,13 +178,21 @@ function Canvas(target, o) {
         }
     };
 
-    this.drawSprite = function (object) {
+    this.save = () => {
+        this.ctx.save();
+    };
+
+    this.restore = () => {
+        this.ctx.restore();
+    };
+
+    this.drawPath = (object) => {
         if (!object._draw) return;
         if (!object.sprite) return;
         if (!_assets || !_assets[object.sprite.data]) return;
         let sprite = object.sprite;
         sprite.data = _assets[sprite.data];
-        this.ctx.save();
+        this.save();
         this.ctx.translate(sprite.x, sprite.y);
         this.ctx.scale(sprite.scale.x, sprite.scale.y);
         this.ctx.rotate(sprite.angle * Math.PI / 180);
@@ -240,10 +223,10 @@ function Canvas(target, o) {
                 case 'bct': this.ctx.bezierCurveTo(v[0], v[1], v[2], v[3], v[4], v[5]); break;
             }
         }
-        this.ctx.restore();
+        this.restore();
     };
 
-    this.write = function (text, x, y, font, fillStyle) {
+    this.write = (text, x, y, font, fillStyle) => {
 
         if (text && fillStyle && font) {
             this.ctx.fillStyle = fillStyle;
@@ -253,10 +236,28 @@ function Canvas(target, o) {
     };
 
     this.clear = function () {
-        this.ctx.clearRect(0, 0, this.elem.width, this.elem.height);
+        this.ctx.clearRect(this.bound.x, this.bound.y, this.elem.width, this.elem.height);
     };
 
+    //make the viewport follow an object always call this.restore at the very end of each step
     this.follow = function (object) {
+        let xSpeed = object.xPrevious - object.x;
+        let ySpeed = object.yPrevious - object.y;
+        this.save();
+        this.pan.x = Math.min(Math.max(0, (object.x - ($(window).width() * 0.5)) + xSpeed), _world.width - $(window).width());
+        this.pan.y = Math.min(Math.max(0, (object.y - ($(window).height() * 0.5)) + ySpeed), _world.height - $(window).height());
 
-    }
+        _input.mouse.X = this.pan.x + mouseX;
+        _input.mouse.Y = this.pan.y + mouseY;
+
+        _input.mouse.X = Math.max(this.bound.x, Math.min(_input.mouse.X, this.bound.w));
+        _input.mouse.Y = Math.max(this.bound.y, Math.min(_input.mouse.Y, this.bound.h));
+
+        mouseX = Math.max(0, Math.min(mouseX, this.elem.width));
+        mouseY = Math.max(0, Math.min(mouseY, this.elem.height));
+
+        this.bound = {x: this.pan.x, y: this.pan.y, w: this.pan.x + this.elem.width, h: this.pan.y + this.elem.height};
+
+        this.ctx.translate(0 - this.pan.x, 0 - this.pan.y);
+    };
 }

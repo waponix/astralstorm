@@ -3,6 +3,8 @@ module.exports = () => {
     global._Object = function () {
         this.x = 0;
         this.y = 0;
+        this.xPrevious = this.x;
+        this.yPrevious = this.y;
         this.w = null;
         this.h = null;
         this.direction = 0;
@@ -53,15 +55,17 @@ module.exports = () => {
                     }
                 }
             }
-
+            //update body
             if (this.body) {
-                this.body.x = this.x;
-                this.body.y = this.y;
+                this.body._update(this);
             }
+            //update sprite
             if (this.sprite) {
-                this.sprite.x = this.x;
-                this.sprite.y = this.y;
+                this.sprite._update(this);
             }
+
+            this.xPrevious = this.x;
+            this.yPrevious = this.y;
             if (this.onStep) this.onStep();
         };
     };

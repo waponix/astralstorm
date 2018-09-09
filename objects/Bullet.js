@@ -3,7 +3,7 @@ module.exports = function () {
         this.owner = null;
         this.radius = 2.5;
         this.speed = 15;
-        this.sprite = new _Sprite(this.x, this.y, 'bullet01');
+        this.sprite = new _Sprite(this.x, this.y, 'bullet_01');
         this.body = new _CircleBody(this.x, this.y, 10);
         this.damage = 5;
     };
@@ -19,7 +19,15 @@ module.exports = function () {
     this.onCollision = {
         'Player': (player) => {
             if (player._id === this.owner._id || !player._draw) return;
+            player.sprite.vars.mainColor = "#00FFFF";
+            setTimeout(() => player.sprite.vars.mainColor = "#FFFFFF", 100);
             destroy(this);
         }
+    };
+
+    this.onDestroy = () => {
+        let explosion = createInstance('Explosion');
+        explosion.x = this.x;
+        explosion.y = this.y;
     };
 };

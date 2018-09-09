@@ -1,75 +1,82 @@
 $(document).ready(function (initial) {
-    addEventListener("beforeunload", function (e) {
-        let confirmationMessage = 'Are you sure you want to leave?';
-
-        e.returnValue = confirmationMessage;
-        return confirmationMessage;
-    });
+    'use strict';
+    window.playerKey = null;
+    window._objects = null;
+    window._world = null;
+    window._assets = null;
 
     let game = new Canvas('#game-world', {width: $(window).width(), height: $(window).height()});
     let socket = io();
 
-    playerKey = null;
-    _objects = null;
-    _world = null;
-    _assets = null;
-
-    //pointer lock canvas on click
-    document.onclick = () => {
-        let name = '';
-        if (!playerKey) {
-            name = promptIGN('Enter your name: ').toUpperCase().substr(0, 10);
-            playerKey = name + random(1000, 1000000);
-            socket.emit('player::new', {key: playerKey, name});
-        }
-        pointerLock(game.elem);
-    };
-
     socket.once('assets::load', (data) => {
-        _assets = data;
+        window._assets = data;
     });
     socket.once('world::load', (data) => {
-        _world = data;
+        window._world = data;
     });
 
     socket.on('objects::update', function (data) {
-        _objects = data;
+        window._objects = data;
     });
 
-    _input = {
+    $('#homescreen #join-button').on('click', () => {
+        let username = $('#homescreen #username').val();
+        if (username) {
+            window.playerKey = username + random(1000, 1000000);
+            socket.emit('player::new', {key: window.playerKey, name});
+            pointerLock(game.elem);
+            $('#homescreen').hide();
+        } else if (!$('#homescreen #username').hasClass('field-empty')){
+            $('#homescreen #username').addClass('field-empty');
+        }
+    });
+
+    $(game.elem).on('click', () => {
+        if (!document.pointerLockElement) {
+            pointerLock(game.elem);
+        }
+    });
+
+    window._input = {
         mouse: {X: game.elem.width * 0.5, Y: game.elem.height * 0.5}
     };
 
+    $('#homescreen #username').on('keydown', (e) => {
+        if (e.which === 13) {
+            $('#homescreen #join-button').triggerHandler('click');
+        }
+    });
+
     //event listeners for user input
-    $(document).on('keydown keyup mousedown mouseup', (e) => {
+    $(document).on('keydown keyup mousedown mouseup click', (e) => {
         if (document.pointerLockElement === game.elem || document.mozPointerLockElement === game.elem) {
             let key = String.fromCharCode(e.which || e.keyCode).toUpperCase();
             let mouseKey = ['L', 'M', 'R'];
-            if (!_input.keyPress) _input.keyPress = {};
+            if (!window._input.keyPress) window._input.keyPress = {};
             switch (e.type) {
                 case 'keydown':
                     e.preventDefault();
-                    _input.keyPress[key] = true;
+                    window._input.keyPress[key] = true;
                     break;
                 case 'keyup':
-                    delete _input.keyPress[key];
+                    delete window._input.keyPress[key];
                     break;
                 case 'mousedown':
-                    _input.mouse[mouseKey[(e.which || e.keyCode) - 1]] = true;
+                    window._input.mouse[mouseKey[(e.which || e.keyCode) - 1]] = true;
                     break;
                 case 'mouseup':
-                    delete _input.mouse[mouseKey[(e.which || e.keyCode) - 1]];
+                    delete window._input.mouse[mouseKey[(e.which || e.keyCode) - 1]];
             }
         }
     });
 
-    mouseX = game.elem.width * 0.5;
-    mouseY = game.elem.height * 0.5;
+    window.mouseX = game.elem.width * 0.5;
+    window.mouseY = game.elem.height * 0.5;
 
     game.elem.addEventListener('mousemove', (e) => {
         if (document.pointerLockElement === game.elem || document.mozPointerLockElement === game.elem) {
-            mouseX += e.movementX;
-            mouseY += e.movementY;
+            window.mouseX += e.movementX;
+            window.mouseY += e.movementY;
         }
     }, false);
 
@@ -78,37 +85,49 @@ $(document).ready(function (initial) {
 
     function step(tick) {
         requestAnimationFrame(step);
-        if (!playerKey && !_objects && !_assets) return;
+        if (!window._objects && !window._assets) return;
 
-        let main = _objects ? _objects.find((obj) => {
-            return obj.id === playerKey;
+        let main = window._objects ? window._objects.find((obj) => {
+            return obj.id === window.playerKey;
         }) : null;
 
-        if (!!main) game.follow(main);
+        let tempTarget = null;
 
-        socket.emit('io::update', {key: playerKey, io: _input});
+        if (!!main)  {
+            game.follow(main);
+        } else if (window._objects) {
+            tempTarget = tempTarget || window._objects.find((obj) => {
+                return obj._instanceOf === 'Player';
+            });
+        }
+
+        if (!main && tempTarget && !tempTarget.destroyed) {
+            game.follow(tempTarget);
+        }
+
+        socket.emit('io::update', {key: window.playerKey, io: window._input});
 
         game.clear();
 
         game.ctx.strokeStyle = '#0f0f0f';
         // game.ctx.setLineDash([2, 10]);
         //draw background
-        for (let i = 0; i <= _world.width; i += 100) {
+        for (let i = 0; i <= window._world.width; i += 100) {
             game.ctx.beginPath();
             game.ctx.moveTo(i, 0);
-            game.ctx.lineTo(i, _world.height);
+            game.ctx.lineTo(i, window._world.height);
             game.ctx.stroke();
         }
 
-        for (let i = 0; i <= _world.height; i += 100) {
+        for (let i = 0; i <= window._world.height; i += 100) {
             game.ctx.beginPath();
             game.ctx.moveTo(0, i);
-            game.ctx.lineTo(_world.width, i);
+            game.ctx.lineTo(window._world.width, i);
             game.ctx.stroke();
         }
 
-        for (let i in _objects) {
-            let data = _objects[i];
+        for (let i in window._objects) {
+            let data = window._objects[i];
             //draw objects;
             game.drawPath(data);
         }
@@ -120,7 +139,7 @@ $(document).ready(function (initial) {
             let mColor = '#FFFFFF';
             game.ctx.setLineDash([]);
             game.ctx.save();
-            game.ctx.translate(mouseX, mouseY);
+            game.ctx.translate(window.mouseX, window.mouseY);
             game.draw(0 - 10, 0, 20, 1, mColor);
             game.draw(0, 0 - 10, 1, 20, mColor);
             game.draw(0 - 15, 0 - 15, 10, 1, mColor);
@@ -146,10 +165,10 @@ function random(min, max) {
     return Math.floor((Math.random() * max) + min);
 }
 
-function promptIGN(msg) {
-    let IGN = prompt(msg);
-    return IGN ? IGN : promptIGN(msg);
-}
+// function promptIGN(msg) {
+//     let IGN = prompt(msg);
+//     return IGN ? IGN : promptIGN(msg);
+// }
 
 function pointerLock(canvas) {
     canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
@@ -159,13 +178,13 @@ function pointerLock(canvas) {
 /*Objects*/
 function Canvas(target, o) {
     this.elem = document.createElement('canvas');
+
     document.body.appendChild(this.elem);
     this.ctx = this.elem.getContext('2d');
-    this.pan = {x: 0, y: 0};
-    this.bound = {x: this.pan.x, y: this.pan.y, w: this.pan.x + this.elem.width, h: this.pan.y + this.elem.height};
-
     this.elem.width = o.width;
     this.elem.height = o.height;
+    this.pan = {x: 0, y: 0};
+    this.bound = {x: this.pan.x, y: this.pan.y, w: this.pan.x + this.elem.width, h: this.pan.y + this.elem.height};
 
     this.draw = function (x, y, w, h, fillStyle, lineWidth, strokeStyle) {
         if (fillStyle) {
@@ -196,13 +215,44 @@ function Canvas(target, o) {
         if (!object._draw) return;
         if (!object.sprite) return;
         if (!this.inBound(object)) return;
-        if (!_assets || !_assets[object.sprite.data]) return;
+        if (!window._assets || !window._assets[object.sprite.data]) return;
         let sprite = object.sprite;
-        sprite.data = _assets[sprite.data];
+        sprite.data = ([]).concat(window._assets[sprite.data]);
+        let dataString = JSON.stringify(sprite.data);
+
+        //replace the placeholders with the proper values
+        if (Object.keys(sprite.vars).length) {
+            for (let i in sprite.vars) {
+                let regex = new RegExp('\:' + i, 'g');
+                dataString = dataString.replace(regex, sprite.vars[i]);
+            }
+            sprite.data = JSON.parse(dataString);
+        }
+
+        let eval = (strExp) => {
+            return new Function('return ' + strExp + ';');
+        };
+
+        let parser = (datas) => {
+            let regex = new RegExp('^eq:');
+            for (let i in datas) {
+                let data = datas[i];
+                if (typeof data === 'object') {
+                    parser(data);
+                } else if (typeof data === 'string' && regex.test(data)) {
+                    datas[i] = eval(data.replace(regex, ''))();
+                }
+            }
+        };
+
+        //parse equations inside the path map
+        parser(sprite.data);
+
         this.save();
         this.ctx.translate(sprite.x, sprite.y);
         this.ctx.scale(sprite.scale.x, sprite.scale.y);
         this.ctx.rotate(sprite.angle * Math.PI / 180);
+        this.ctx.globalAlpha = sprite.alpha;
         for (let key in sprite.data) {
             let a = null, v = null;
 
@@ -255,18 +305,28 @@ function Canvas(target, o) {
     this.follow = function (object) {
         let xSpeed = object.xPrevious - object.x;
         let ySpeed = object.yPrevious - object.y;
+
         this.save();
-        this.pan.x = Math.min(Math.max(0, (object.x - ($(window).width() * 0.5)) + xSpeed), _world.width - $(window).width());
-        this.pan.y = Math.min(Math.max(0, (object.y - ($(window).height() * 0.5)) + ySpeed), _world.height - $(window).height());
 
-        _input.mouse.X = this.pan.x + mouseX;
-        _input.mouse.Y = this.pan.y + mouseY;
+        let current = this.pan;
+        let target = {
+            x: (object.x - ($(window).width() * 0.5)) + xSpeed,
+            y: (object.y - ($(window).height() * 0.5)) + ySpeed
+        };
 
-        _input.mouse.X = Math.max(this.bound.x, Math.min(_input.mouse.X, this.bound.w));
-        _input.mouse.Y = Math.max(this.bound.y, Math.min(_input.mouse.Y, this.bound.h));
+        this.pan = target;
 
-        mouseX = Math.max(0, Math.min(mouseX, this.elem.width));
-        mouseY = Math.max(0, Math.min(mouseY, this.elem.height));
+        this.pan.x = Math.min(Math.max(0, this.pan.x), window._world.width - $(window).width());
+        this.pan.y = Math.min(Math.max(0, this.pan.y), window._world.height - $(window).height());
+
+        window._input.mouse.X = this.pan.x + window.mouseX;
+        window._input.mouse.Y = this.pan.y + window.mouseY;
+
+        window._input.mouse.X = Math.max(this.bound.x, Math.min(window._input.mouse.X, this.bound.w));
+        window._input.mouse.Y = Math.max(this.bound.y, Math.min(window._input.mouse.Y, this.bound.h));
+
+        window.mouseX = Math.max(0, Math.min(window.mouseX, this.elem.width));
+        window.mouseY = Math.max(0, Math.min(window.mouseY, this.elem.height));
 
         this.bound = {x: this.pan.x, y: this.pan.y, w: this.pan.x + this.elem.width, h: this.pan.y + this.elem.height};
 

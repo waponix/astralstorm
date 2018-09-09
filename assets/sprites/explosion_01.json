@@ -1,0 +1,7 @@
+[
+  {"ss": ":color"},
+  {"lw": ":strokeSize"},
+  "bp",
+  {"a": [0, 0, ":radius", 0, "eq: 2 * Math.PI"]},
+  "s"
+]

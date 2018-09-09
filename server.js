@@ -1,13 +1,7 @@
 let express = require('express');
-let fs = require('fs');
 let app = express();
 let server = require('http').Server(app);
 let io = require('socket.io')(server);
-
-let assets = {
-    craft01: JSON.parse(fs.readFileSync('assets/sprites/craft_01.json', 'utf-8')),
-    bullet01: JSON.parse(fs.readFileSync('assets/sprites/bullet_01.json', 'utf-8'))
-};
 
 //initialize components
 require('./components/globals/init')();
@@ -19,7 +13,7 @@ app.get('/', function (req, res) {
 });
 
 io.on('connection', function (socket) {
-    socket.emit('assets::load', assets);
+    socket.emit('assets::load', _assets);
     socket.emit('world::load', World.dimension);
 
     socket.on('disconnect', function () {

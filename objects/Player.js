@@ -4,12 +4,18 @@ module.exports = function () {
         this.destroyed = false;
         this.fireRate = new Timer(0.02, true);
         this.fireRate.zeroOut();
-        this.sprite = new _Sprite(this.x, this.y, 'craft01');
-        this.body = new _CircleBody(this.x, this.y, 20);
-        this.sprite.angle = this.direction;
         this.depth = 10;
-        this.x = 100;
-        this.y = 100;
+        this.x = random(70, World.dimension.width - 70);
+        this.y = random(70,  World.dimension.height - 70);
+        this._draw = false;
+        setTimeout(() => this._draw = true, 200);
+
+        this.body = new _CircleBody(this.x, this.y, 20);
+
+        this.sprite = new _Sprite(this.x, this.y, 'craft_01');
+        this.sprite.angle = this.direction;
+        this.sprite.vars.mainColor = '#FFFFFF';
+        this.sprite.vars.speed = 0;
     };
 
     this.onStep = () => {
@@ -26,7 +32,8 @@ module.exports = function () {
 
         let distanceFromPointer = pointDistance(this.x, this.y, this._input.mouse.X, this._input.mouse.Y);
         this.speed = distanceFromPointer / 50;
-        this.speed = limit(this.speed, this.speed, 6);
+        this.sprite.vars.speed = this.speed;
+        this.speed = limit(this.speed, this.speed, 8);
         this.x = this.x + this.speed * Math.cos(this.direction * Math.PI / 180);
         this.y = this.y + this.speed * Math.sin(this.direction * Math.PI / 180);
         this.x = (this.x <= 70) ? 70 : this.x;

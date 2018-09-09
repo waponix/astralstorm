@@ -1,0 +1,105 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    position: relative;
+}
+
+body {
+    background: #000000;
+    overflow: hidden;
+}
+
+canvas {
+    image-rendering: optimizeSpeed; /* Older versions of FF          */
+    image-rendering: -moz-crisp-edges; /* FF 6.0+                       */
+    image-rendering: -webkit-optimize-contrast; /* Safari                        */
+    image-rendering: -o-crisp-edges; /* OS X & Windows Opera (12.02+) */
+    image-rendering: pixelated; /* Awesome future-browsers       */
+    -ms-interpolation-mode: nearest-neighbor; /* IE                            */
+}
+
+#homescreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    font-family: Orbitron;
+    text-align: center;
+}
+
+#homescreen div {
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#homescreen input, #homescreen button {
+    display: block;
+}
+
+#homescreen #username {
+    font-family: Orbitron;
+    background: rgba(0, 0, 0, 0.8);
+    color: #ffffff;
+    border: none;
+    border-bottom: 1px solid #ffffff;
+    padding: 10px;
+    text-align: center;
+    margin: auto;
+    margin-top: 10px;
+    outline: none;
+    width: 400px;
+}
+
+#homescreen #join-button {
+    font-family: Orbitron;
+    width: 200px;
+    background: rgba(0, 0, 0, 0.5);
+    margin: auto;
+    margin-top: 20px;
+    color: #ffffff;
+    padding: 10px;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    outline: none;
+    vertical-align: middle;
+}
+
+#homescreen #join-button:before {
+    content: '[';
+    margin-right: 5px;
+    color: #ffffff;
+    transition: margin 0.2s;
+}
+
+#homescreen #join-button:after {
+    content: ']';
+    color: #ffffff;
+    margin-left: 5px;
+    transition: margin 0.2s;
+}
+
+#homescreen #join-button:hover:before {
+    margin-right: 15px;
+}
+
+#homescreen #join-button:hover:after {
+    margin-left: 15px;
+}
+
+.field-empty {
+    border-color: red !important;
+}

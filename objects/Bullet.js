@@ -20,6 +20,7 @@ module.exports = function () {
         'Player': (player) => {
             if (player._id === this.owner._id || !player._draw) return;
             player.sprite.vars.mainColor = "#00FFFF";
+            player.health -= this.damage;
             setTimeout(() => player.sprite.vars.mainColor = "#FFFFFF", 100);
             destroy(this);
         }

@@ -8,8 +8,9 @@ module.exports = function () {
     };
 
     this.onStep = () => {
+        this.sprite.vars.dashSize -= 1;
         this.sprite.vars.radius += 1;
-        this.sprite.vars.strokeSize -= 1;
+        this.sprite.vars.strokeSize -= 0.6;
         if (this.sprite.vars.strokeSize < 0) destroy(this);
     };
 };

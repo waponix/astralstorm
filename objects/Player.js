@@ -58,6 +58,13 @@ module.exports = function () {
     };
 
     this.onDestroy = () => {
-        this.destroyed = true;
+        if (!this.destroyed) {
+            this.destroyed = true;
+            let explosion = createInstance('Explosion');
+            explosion.x = this.x;
+            explosion.y = this.y;
+            explosion.sprite.vars.strokeSize = 50;
+            explosion.sprite.vars.radius = 10;
+        }
     };
 };

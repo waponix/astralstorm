@@ -1,6 +1,7 @@
 [
   {"ss": ":color"},
   {"lw": ":strokeSize"},
+  {"sld": [0, 0]},
   "bp",
   {"a": [0, 0, ":radius", 0, "eq: 2 * Math.PI"]},
   "s"

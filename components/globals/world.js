@@ -11,8 +11,8 @@ module.exports = () => {
             for (let g in this._objects) {
                 arrayObjects = arrayObjects.concat(Object.values(this._objects[g]));
             }
-            sort(arrayObjects, 'depth');
-            return arrayObjects;
+            arrayObjects = sort(arrayObjects, 'depth');
+            return JSON.stringify(arrayObjects);
         }
     };
 };

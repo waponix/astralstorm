@@ -81,7 +81,7 @@ $(document).ready(function (initial) {
     function dataReceiver() {
         return new Promise((res) => {
             socket.once('objects::update', (data) => {
-                res(data);
+                res(JSON.parse(data));
             });
         });
     }
@@ -91,6 +91,8 @@ $(document).ready(function (initial) {
 
     function step(tick) {
         requestAnimationFrame(step);
+
+        socket.emit('io::update', {key: window.playerKey, io: window._input});
 
         window._data.then((data) => {
             window._objects = data;
@@ -115,12 +117,10 @@ $(document).ready(function (initial) {
                 game.follow(tempTarget);
             }
 
-            socket.emit('io::update', {key: window.playerKey, io: window._input});
-
             game.clear();
 
-            game.ctx.strokeStyle = '#0f0f0f';
-            // game.ctx.setLineDash([2, 10]);
+            game.ctx.strokeStyle = '#2f2f2f';
+            game.ctx.setLineDash([2, 2]);
             //draw background
             for (let i = 0; i <= window._world.width; i += 100) {
                 game.ctx.beginPath();
@@ -178,11 +178,6 @@ function random(min, max) {
     return Math.floor((Math.random() * max) + min);
 }
 
-// function promptIGN(msg) {
-//     let IGN = prompt(msg);
-//     return IGN ? IGN : promptIGN(msg);
-// }
-
 function pointerLock(canvas) {
     canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
     canvas.requestPointerLock();
@@ -230,7 +225,7 @@ function Canvas(target, o) {
         if (!this.inBound(object)) return;
         if (!window._assets || !window._assets[object.sprite.data]) return;
         let sprite = object.sprite;
-        sprite.data = ([]).concat(window._assets[sprite.data]);
+        sprite.data = JSON.parse(window._assets[sprite.data]);
         let dataString = JSON.stringify(sprite.data);
 
         //replace the placeholders with the proper values
@@ -282,6 +277,7 @@ function Canvas(target, o) {
                 case 'ss': this.ctx.strokeStyle = v; break;
                 case 's': this.ctx.stroke(); break;
                 case 'lw': this.ctx.lineWidth = v; break;
+                case 'sld': this.ctx.setLineDash([v[0], v[1]]); break;
                 case 'gco': this.ctx.globalCompositeOperation = v; break;
                 case 'bp': this.ctx.beginPath(); break;
                 case 'cp': this.ctx.closePath(); break;

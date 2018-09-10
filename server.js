@@ -55,8 +55,7 @@ server.listen(3000, function () {
     console.log('listening on *:3000');
 
     setInterval(function () {
-        if (!Object.keys(World._objects).length) return;
-        update();
+        if (Object.keys(World._objects).length) update();
         io.emit('objects::update', World.arrayObjects());
     }, 10);
 });

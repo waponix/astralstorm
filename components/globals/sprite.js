@@ -18,6 +18,6 @@ module.exports = () => {
     global._assets = {};
     let sprites = fs.readdirSync('assets/sprites');
     for (let s in sprites) {
-        _assets[sprites[s].split('.')[0]] = JSON.parse(fs.readFileSync('assets/sprites/' + sprites[s]));
+        _assets[sprites[s].split('.')[0]] = fs.readFileSync('assets/sprites/' + sprites[s], 'utf-8');
     }
 };

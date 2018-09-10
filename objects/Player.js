@@ -61,10 +61,19 @@ module.exports = function () {
         if (!this.destroyed) {
             this.destroyed = true;
             let explosion = createInstance('Explosion');
-            explosion.x = this.x;
-            explosion.y = this.y;
-            explosion.sprite.vars.strokeSize = 50;
-            explosion.sprite.vars.radius = 10;
+            explosion.x = x
+            explosion.y = y;
+            explosion.sprite.vars.strokeSize = 30;
+            explosion.sprite.vars.radius = 5;
+            //create more explosions;
+            for (let i = 0; i < 5; i++) {
+                let delay = random(500, 800);
+                setTimeout(() => {
+                    explosion = createInstance('Explosion');
+                    explosion.x = this.x;
+                    explosion.y = this.y;
+                }, delay);
+            }
         }
     };
 };

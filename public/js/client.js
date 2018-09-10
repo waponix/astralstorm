@@ -20,7 +20,7 @@ $(document).ready(function (initial) {
         if (username) {
             window.playerKey = username + random(1000, 1000000);
             socket.emit('player::new', {key: window.playerKey, name});
-            pointerLock(game.elem);
+            game.pointerLock();
             $('#homescreen').hide();
         } else if (!$('#homescreen #username').hasClass('field-empty')){
             $('#homescreen #username').addClass('field-empty');
@@ -29,7 +29,7 @@ $(document).ready(function (initial) {
 
     $(game.elem).on('click', () => {
         if (!document.pointerLockElement) {
-            pointerLock(game.elem);
+            game.pointerLock();
         }
     });
 
@@ -90,8 +90,6 @@ $(document).ready(function (initial) {
     requestAnimationFrame(step);
 
     function step(tick) {
-        requestAnimationFrame(step);
-
         socket.emit('io::update', {key: window.playerKey, io: window._input});
 
         window._data.then((data) => {
@@ -103,23 +101,16 @@ $(document).ready(function (initial) {
                 return obj.id === window.playerKey;
             }) : null;
 
-            let tempTarget = null;
+            if (!!main) game.follow(main);
 
-            if (!!main)  {
-                game.follow(main);
-            } else if (window._objects) {
-                tempTarget = tempTarget || window._objects.find((obj) => {
-                    return obj._instanceOf === 'Player';
-                });
-            }
-
-            if (!main && tempTarget && !tempTarget.destroyed) {
-                game.follow(tempTarget);
+            if (!!main && main.destroyed && $('#homescreen').is(':hidden')) {
+                $('#homescreen').fadeIn();
+                game.exitPointerLock();
             }
 
             game.clear();
 
-            game.ctx.strokeStyle = '#2f2f2f';
+            game.ctx.strokeStyle = '#002024';
             game.ctx.setLineDash([2, 2]);
             //draw background
             for (let i = 0; i <= window._world.width; i += 100) {
@@ -170,17 +161,13 @@ $(document).ready(function (initial) {
 
             window._data = dataReceiver();
         });
+        requestAnimationFrame(step);
     };
 });
 
 /*FUNCTIONS*/
 function random(min, max) {
-    return Math.floor((Math.random() * max) + min);
-}
-
-function pointerLock(canvas) {
-    canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
-    canvas.requestPointerLock();
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 /*Objects*/
@@ -272,6 +259,7 @@ function Canvas(target, o) {
             }
 
             switch(a) {
+                case 'ga': this.ctx.globalAlpha = v; break;
                 case 'fs': this.ctx.fillStyle = v; break;
                 case 'f': this.ctx.fill(); break;
                 case 'ss': this.ctx.strokeStyle = v; break;
@@ -341,4 +329,14 @@ function Canvas(target, o) {
 
         this.ctx.translate(0 - this.pan.x, 0 - this.pan.y);
     };
+
+    this.pointerLock = function () {
+        this.elem.requestPointerLock = this.elem.requestPointerLock || this.elem.mozRequestPointerLock;
+        this.elem.requestPointerLock();
+    }
+
+    this.exitPointerLock = function () {
+        document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
+        if (document.pointerLockElement === this.elem) document.exitPointerLock();
+    }
 }

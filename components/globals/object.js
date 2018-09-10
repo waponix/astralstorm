@@ -35,6 +35,10 @@ module.exports = () => {
         };
 
         this._update = () => {
+            //correct angle when less than 0
+            if (this.direction < 0) {
+                this.direction = 360 + this.direction;
+            }
             //run collision checking
             if (this.onCollision) {
                 for(let obj in this.onCollision) {

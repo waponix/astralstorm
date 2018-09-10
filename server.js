@@ -16,6 +16,12 @@ io.on('connection', function (socket) {
     socket.emit('assets::load', _assets);
     socket.emit('world::load', World.dimension);
 
+    /*for (let i = 0; i < 10; i+=1) {
+        let dummy = createInstance('Player');
+        dummy._input.mouse.X = random(0, World.dimension.width);
+        dummy._input.mouse.Y = random(0, World.dimension.height);
+    }*/
+
     socket.on('disconnect', function () {
         for (let key in World._objects.Players) {
             let player = World._objects.Players[key];

@@ -1,4 +1,7 @@
 module.exports = function () {
+    let rotX = 0, rotY = 0;
+    let destruct = new Timer(1000);
+
     this.onCreate = () => {
         this.health = 100;
         this.destroyed = false;
@@ -14,26 +17,32 @@ module.exports = function () {
 
         this.sprite = new _Sprite(this.x, this.y, 'craft_01');
         this.sprite.angle = this.direction;
-        this.sprite.vars.mainColor = '#FFFFFF';
+        this.originalColor = 'rgba(' + random(150, 255) + ', ' + random(150, 255) + ', ' + random(150, 255) + ')';
+        this.sprite.vars.mainColor = this.originalColor;
         this.sprite.vars.speed = 0;
     };
 
     this.onStep = () => {
         if (this.health <= 0) destroy(this, false);
-        if (this.destroyed) return;
+        if (this.destroyed) {
+            destruct.tick();
+            if (destruct.timedOut()) {
+                delete this.onDestroy;
+                destroy(this);
+            }
+            return;
+        }
 
-        let rotX = this._input.mouse.X - this.x;
-        let rotY = this._input.mouse.Y - this.y;
+        rotX = this._input.mouse.X - this.x;
+        rotY = this._input.mouse.Y - this.y;
 
         this.direction = Math.atan2(rotY, rotX) / Math.PI * 180;
-        if (this.direction < 0) {
-            this.direction = 360 + this.direction;
-        }
 
         let distanceFromPointer = pointDistance(this.x, this.y, this._input.mouse.X, this._input.mouse.Y);
         this.speed = distanceFromPointer / 50;
         this.sprite.vars.speed = this.speed;
         this.speed = limit(this.speed, this.speed, 8);
+
         this.x = this.x + this.speed * Math.cos(this.direction * Math.PI / 180);
         this.y = this.y + this.speed * Math.sin(this.direction * Math.PI / 180);
         this.x = (this.x <= 70) ? 70 : this.x;
@@ -61,17 +70,17 @@ module.exports = function () {
         if (!this.destroyed) {
             this.destroyed = true;
             let explosion = createInstance('Explosion');
-            explosion.x = x
-            explosion.y = y;
+            explosion.x = this.x;
+            explosion.y = this.y;
             explosion.sprite.vars.strokeSize = 30;
             explosion.sprite.vars.radius = 5;
             //create more explosions;
-            for (let i = 0; i < 5; i++) {
-                let delay = random(500, 800);
+            for (let i = 0; i < 10; i++) {
+                let delay = random(50, 200);
                 setTimeout(() => {
                     explosion = createInstance('Explosion');
-                    explosion.x = this.x;
-                    explosion.y = this.y;
+                    explosion.x = random(this.x - 25, this.x + 25);
+                    explosion.y = random(this.y - 25, this.y + 25);
                 }, delay);
             }
         }

@@ -15,10 +15,6 @@ $(document).ready(function (initial) {
         window._world = data;
     });
 
-    socket.on('objects::update', function (data) {
-        window._objects = data;
-    });
-
     $('#homescreen #join-button').on('click', () => {
         let username = $('#homescreen #username').val();
         if (username) {
@@ -80,83 +76,100 @@ $(document).ready(function (initial) {
         }
     }, false);
 
+    window._data = dataReceiver();
+
+    function dataReceiver() {
+        return new Promise((res) => {
+            socket.once('objects::update', (data) => {
+                res(data);
+            });
+        });
+    }
+
     /*DISPLAY MANAGEMENT*/
     requestAnimationFrame(step);
 
     function step(tick) {
         requestAnimationFrame(step);
-        if (!window._objects && !window._assets) return;
 
-        let main = window._objects ? window._objects.find((obj) => {
-            return obj.id === window.playerKey;
-        }) : null;
+        window._data.then((data) => {
+            window._objects = data;
 
-        let tempTarget = null;
+            if (!window._assets) return;
 
-        if (!!main)  {
-            game.follow(main);
-        } else if (window._objects) {
-            tempTarget = tempTarget || window._objects.find((obj) => {
-                return obj._instanceOf === 'Player';
-            });
-        }
+            let main = window._objects ? window._objects.find((obj) => {
+                return obj.id === window.playerKey;
+            }) : null;
 
-        if (!main && tempTarget && !tempTarget.destroyed) {
-            game.follow(tempTarget);
-        }
+            let tempTarget = null;
 
-        socket.emit('io::update', {key: window.playerKey, io: window._input});
+            if (!!main)  {
+                game.follow(main);
+            } else if (window._objects) {
+                tempTarget = tempTarget || window._objects.find((obj) => {
+                    return obj._instanceOf === 'Player';
+                });
+            }
 
-        game.clear();
+            if (!main && tempTarget && !tempTarget.destroyed) {
+                game.follow(tempTarget);
+            }
 
-        game.ctx.strokeStyle = '#0f0f0f';
-        // game.ctx.setLineDash([2, 10]);
-        //draw background
-        for (let i = 0; i <= window._world.width; i += 100) {
-            game.ctx.beginPath();
-            game.ctx.moveTo(i, 0);
-            game.ctx.lineTo(i, window._world.height);
-            game.ctx.stroke();
-        }
+            socket.emit('io::update', {key: window.playerKey, io: window._input});
 
-        for (let i = 0; i <= window._world.height; i += 100) {
-            game.ctx.beginPath();
-            game.ctx.moveTo(0, i);
-            game.ctx.lineTo(window._world.width, i);
-            game.ctx.stroke();
-        }
+            game.clear();
 
-        for (let i in window._objects) {
-            let data = window._objects[i];
-            //draw objects;
-            game.drawPath(data);
-        }
+            game.ctx.strokeStyle = '#0f0f0f';
+            // game.ctx.setLineDash([2, 10]);
+            //draw background
+            for (let i = 0; i <= window._world.width; i += 100) {
+                game.ctx.beginPath();
+                game.ctx.moveTo(i, 0);
+                game.ctx.lineTo(i, window._world.height);
+                game.ctx.stroke();
+            }
 
-        game.restore();
+            for (let i = 0; i <= window._world.height; i += 100) {
+                game.ctx.beginPath();
+                game.ctx.moveTo(0, i);
+                game.ctx.lineTo(window._world.width, i);
+                game.ctx.stroke();
+            }
 
-        if (!!main && !main.destroyed) {
-            //draw player cursor
-            let mColor = '#FFFFFF';
-            game.ctx.setLineDash([]);
-            game.ctx.save();
-            game.ctx.translate(window.mouseX, window.mouseY);
-            game.draw(0 - 10, 0, 20, 1, mColor);
-            game.draw(0, 0 - 10, 1, 20, mColor);
-            game.draw(0 - 15, 0 - 15, 10, 1, mColor);
-            game.draw(0 + 5, 0 + 15, 10, 1, mColor);
-            game.draw(0 + 5, 0 - 15, 10, 1, mColor);
-            game.draw(0 - 15, 0 + 15, 10, 1, mColor);
-            game.draw(0 - 15, 0 - 15, 1, 10, mColor);
-            game.draw(0 + 15, 0 + 5, 1, 10, mColor);
-            game.draw(0 + 15, 0 - 15, 1, 10, mColor);
-            game.draw(0 - 15, 0 + 5, 1, 10, mColor);
-            game.ctx.strokeStyle = mColor;
-            game.ctx.beginPath();
-            game.ctx.lineWidth = 1;
-            game.ctx.arc(0 + 0.5, 0 + 0.5, 5, 0, 2 * Math.PI);
-            game.ctx.stroke();
-            game.ctx.restore();
-        }
+            for (let i in window._objects) {
+                let data = window._objects[i];
+                //draw objects;
+                game.drawPath(data);
+            }
+
+            game.restore();
+
+            if (!!main && !main.destroyed) {
+                //draw player cursor
+                let mColor = '#FFFFFF';
+                game.ctx.setLineDash([]);
+                game.ctx.save();
+                game.ctx.translate(window.mouseX, window.mouseY);
+                game.draw(0 - 10, 0, 20, 1, mColor);
+                game.draw(0, 0 - 10, 1, 20, mColor);
+                game.draw(0 - 15, 0 - 15, 10, 1, mColor);
+                game.draw(0 + 5, 0 + 15, 10, 1, mColor);
+                game.draw(0 + 5, 0 - 15, 10, 1, mColor);
+                game.draw(0 - 15, 0 + 15, 10, 1, mColor);
+                game.draw(0 - 15, 0 - 15, 1, 10, mColor);
+                game.draw(0 + 15, 0 + 5, 1, 10, mColor);
+                game.draw(0 + 15, 0 - 15, 1, 10, mColor);
+                game.draw(0 - 15, 0 + 5, 1, 10, mColor);
+                game.ctx.strokeStyle = mColor;
+                game.ctx.beginPath();
+                game.ctx.lineWidth = 1;
+                game.ctx.arc(0 + 0.5, 0 + 0.5, 5, 0, 2 * Math.PI);
+                game.ctx.stroke();
+                game.ctx.restore();
+            }
+
+            window._data = dataReceiver();
+        });
     };
 });
 

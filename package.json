@@ -1,18 +1,29 @@
 {
-  "name": "astral-defense",
-  "version": "0.0.1",
-  "description": "Prepare to defend your Mothership!",
+  "name": "astralstorm",
+  "version": "1.0.0",
+  "description": "Learning how to make a game in NodeJS",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
-  "author": "Eric Bermejo Reyes",
-  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ericbermejoreyes/astralstorm.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ericbermejoreyes/astralstorm/issues"
+  },
+  "homepage": "https://github.com/ericbermejoreyes/astralstorm#readme",
   "dependencies": {
-    "express": "^4.10.2",
+    "express": "^4.16.3",
     "file-system": "^2.2.2",
     "shortid": "^2.2.13",
-    "socket.io": "^1.7.4",
+    "socket.io": "^2.1.1",
+    "socket.io-stream": "^0.9.1",
     "uuid": "^3.3.2"
   }
 }

@@ -2,6 +2,8 @@ let express = require('express');
 let app = express();
 let server = require('http').Server(app);
 let io = require('socket.io')(server);
+let ss = require('socket.io-stream');
+let fs = require('file-system');
 
 //initialize components
 require('./components/globals/init')();
@@ -55,7 +57,23 @@ io.on('connection', function (socket) {
             }
         }
     });
+
+    streamer(socket);
 });
+
+function streamer(socket) {
+    let temp = 'temp.txt';
+    if (!fs.existsSync(temp)) fs.writeFileSync(temp, '', 'utf-8');
+
+    let dataStream = ss.createStream({
+        highWaterMark: 8
+    });
+
+    fs.createReadStream(temp).on('open', function() {
+        ss(socket).emit('temp:test', dataStream);
+        this.pipe(dataStream);
+    });
+}
 
 server.listen(3000, function () {
     console.log('listening on *:3000');

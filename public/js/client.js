@@ -8,6 +8,13 @@ $(document).ready(function (initial) {
     let game = new Canvas('#game-world', {width: $(window).width(), height: $(window).height()});
     let socket = io();
 
+    ss(socket).on('temp:test', (dataStream) => {
+        let decoder = new TextDecoder("utf-8");
+        dataStream.on('data', (data) => {
+            console.log(decoder.decode(data), 'break');
+        });
+    });
+
     socket.once('assets::load', (data) => {
         window._assets = data;
     });

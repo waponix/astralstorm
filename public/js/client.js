@@ -10,9 +10,10 @@ $(document).ready(function (initial) {
 
     ss(socket).on('temp:test', (dataStream) => {
         let decoder = new TextDecoder("utf-8");
-        dataStream.on('data', (data) => {
-            console.log(decoder.decode(data), 'break');
-        });
+        let data = '';
+        dataStream.on('data', (chunk) => {
+            data += decoder.decode(chunk);
+        }).on('end', () => console.log('received'));
     });
 
     socket.once('assets::load', (data) => {

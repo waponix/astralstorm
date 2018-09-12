@@ -61,6 +61,7 @@ io.on('connection', function (socket) {
     let dataStream = stream(socket);
 
     setInterval(() => {
+        if (Object.keys(World._objects).length < 1) return;
         dataStream.then(() => {
             dataStream = stream(socket);
         });
@@ -68,29 +69,19 @@ io.on('connection', function (socket) {
 
     function stream(socket) {
         return new Promise((res) => {
+            let stringStream = require('string-to-stream');
             let dataStream = ss.createStream({
                 highWaterMark: 8,
                 objectMode: true,
             });
 
-            let sourceStream = ss.createStream();
-            sourceStream._read = () => {};
-            sourceStream.push(World.arrayObjects());
-
-            sourceStream.on('open', function() {
-                ss(socket).emit('temp:test', dataStream);
-                this.pipe(dataStream);
-                dataStream.on('end', () => res());
-            });
+            ss(socket).emit('data::stream', dataStream);
+            stringStream(World.arrayObjects()).pipe(dataStream);
+            dataStream.on('end', () => res());
         });
     }
 });
 
 server.listen(3000, function () {
     console.log('listening on *:3000');
-
-    setInterval(function () {
-        if (Object.keys(World._objects).length) update();
-        io.emit('objects::update', World.arrayObjects());
-    }, 10);
 });

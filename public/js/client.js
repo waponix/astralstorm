@@ -8,14 +8,6 @@ $(document).ready(function (initial) {
     let game = new Canvas('#game-world', {width: $(window).width(), height: $(window).height()});
     let socket = io();
 
-    ss(socket).on('temp:test', (dataStream) => {
-        let decoder = new TextDecoder("utf-8");
-        let data = '';
-        dataStream.on('data', (chunk) => {
-            data += decoder.decode(chunk);
-        }).on('end', () => console.log('received'));
-    });
-
     socket.once('assets::load', (data) => {
         window._assets = data;
     });
@@ -84,12 +76,19 @@ $(document).ready(function (initial) {
         }
     }, false);
 
-    window._data = dataReceiver();
+    window._reader = dataReader();
 
-    function dataReceiver() {
+    function dataReader() {
         return new Promise((res) => {
-            socket.once('objects::update', (data) => {
-                res(JSON.parse(data));
+            ss(socket).on('data::stream', (dataStream) => {
+                let decoder = new TextDecoder("utf-8");
+                let data = '';
+                dataStream.on('data', (chunk) => {
+                    data += decoder.decode(chunk);
+                    console.log(JSON.parse(data));
+                }).on('end', () => {
+
+                });
             });
         });
     }
@@ -100,8 +99,9 @@ $(document).ready(function (initial) {
     function step(tick) {
         socket.emit('io::update', {key: window.playerKey, io: window._input});
 
-        window._data.then((data) => {
-            window._objects = data;
+        window._reader.then((data) => {
+
+           /* window._objects = JSON.parse(data);
 
             if (!window._assets) return;
 
@@ -167,7 +167,7 @@ $(document).ready(function (initial) {
                 game.ctx.restore();
             }
 
-            window._data = dataReceiver();
+            window._reader = dataReader();*/
         });
         requestAnimationFrame(step);
     };

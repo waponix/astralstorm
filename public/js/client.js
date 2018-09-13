@@ -1,4 +1,4 @@
-$(document).ready(function (initial) {
+$(document).ready(function () {
     'use strict';
     window.playerKey = null;
     window._objects = null;
@@ -76,22 +76,15 @@ $(document).ready(function (initial) {
         }
     }, false);
 
-    window._reader = dataReader();
+    window._reader = null;
 
-    function dataReader() {
-        return new Promise((res) => {
-            ss(socket).on('data::stream', (dataStream) => {
-                let decoder = new TextDecoder("utf-8");
-                let data = '';
-                dataStream.on('data', (chunk) => {
-                    data += decoder.decode(chunk);
-                    console.log(JSON.parse(data));
-                }).on('end', () => {
-
-                });
-            });
-        });
-    }
+    ss(socket).on('data::stream', (dataStream) => {
+        let decoder = new TextDecoder("utf-8");
+        let dataString = '';
+        dataStream.on('data', (chunk) => {
+            dataString += decoder.decode(chunk);
+        }).on('end', () => window._reader = Promise.resolve(dataString));
+    });
 
     /*DISPLAY MANAGEMENT*/
     requestAnimationFrame(step);
@@ -99,76 +92,75 @@ $(document).ready(function (initial) {
     function step(tick) {
         socket.emit('io::update', {key: window.playerKey, io: window._input});
 
-        window._reader.then((data) => {
+        if (window._reader && window._reader.then) {
+            window._reader.then((data) => {
+                window._objects = JSON.parse(data);
 
-           /* window._objects = JSON.parse(data);
+                if (!window._assets) return;
 
-            if (!window._assets) return;
+                let main = window._objects ? window._objects.find((obj) => {
+                    return obj.id === window.playerKey;
+                }) : null;
 
-            let main = window._objects ? window._objects.find((obj) => {
-                return obj.id === window.playerKey;
-            }) : null;
+                if (!!main) game.follow(main);
 
-            if (!!main) game.follow(main);
+                if (!!main && main.destroyed && $('#homescreen').is(':hidden')) {
+                    $('#homescreen').fadeIn();
+                    game.exitPointerLock();
+                }
 
-            if (!!main && main.destroyed && $('#homescreen').is(':hidden')) {
-                $('#homescreen').fadeIn();
-                game.exitPointerLock();
-            }
+                game.clear();
 
-            game.clear();
+                game.ctx.strokeStyle = '#002024';
+                game.ctx.setLineDash([2, 2]);
+                //draw background
+                for (let i = 0; i <= window._world.width; i += 100) {
+                    game.ctx.beginPath();
+                    game.ctx.moveTo(i, 0);
+                    game.ctx.lineTo(i, window._world.height);
+                    game.ctx.stroke();
+                }
 
-            game.ctx.strokeStyle = '#002024';
-            game.ctx.setLineDash([2, 2]);
-            //draw background
-            for (let i = 0; i <= window._world.width; i += 100) {
-                game.ctx.beginPath();
-                game.ctx.moveTo(i, 0);
-                game.ctx.lineTo(i, window._world.height);
-                game.ctx.stroke();
-            }
+                for (let i = 0; i <= window._world.height; i += 100) {
+                    game.ctx.beginPath();
+                    game.ctx.moveTo(0, i);
+                    game.ctx.lineTo(window._world.width, i);
+                    game.ctx.stroke();
+                }
 
-            for (let i = 0; i <= window._world.height; i += 100) {
-                game.ctx.beginPath();
-                game.ctx.moveTo(0, i);
-                game.ctx.lineTo(window._world.width, i);
-                game.ctx.stroke();
-            }
+                for (let i in window._objects) {
+                    let object = window._objects[i];
+                    //draw objects;
+                    game.drawPath(object);
+                }
 
-            for (let i in window._objects) {
-                let data = window._objects[i];
-                //draw objects;
-                game.drawPath(data);
-            }
+                game.restore();
 
-            game.restore();
-
-            if (!!main && !main.destroyed) {
-                //draw player cursor
-                let mColor = '#FFFFFF';
-                game.ctx.setLineDash([]);
-                game.ctx.save();
-                game.ctx.translate(window.mouseX, window.mouseY);
-                game.draw(0 - 10, 0, 20, 1, mColor);
-                game.draw(0, 0 - 10, 1, 20, mColor);
-                game.draw(0 - 15, 0 - 15, 10, 1, mColor);
-                game.draw(0 + 5, 0 + 15, 10, 1, mColor);
-                game.draw(0 + 5, 0 - 15, 10, 1, mColor);
-                game.draw(0 - 15, 0 + 15, 10, 1, mColor);
-                game.draw(0 - 15, 0 - 15, 1, 10, mColor);
-                game.draw(0 + 15, 0 + 5, 1, 10, mColor);
-                game.draw(0 + 15, 0 - 15, 1, 10, mColor);
-                game.draw(0 - 15, 0 + 5, 1, 10, mColor);
-                game.ctx.strokeStyle = mColor;
-                game.ctx.beginPath();
-                game.ctx.lineWidth = 1;
-                game.ctx.arc(0 + 0.5, 0 + 0.5, 5, 0, 2 * Math.PI);
-                game.ctx.stroke();
-                game.ctx.restore();
-            }
-
-            window._reader = dataReader();*/
-        });
+                if (!!main && !main.destroyed) {
+                    //draw player cursor
+                    let mColor = '#FFFFFF';
+                    game.ctx.setLineDash([]);
+                    game.ctx.save();
+                    game.ctx.translate(window.mouseX, window.mouseY);
+                    game.draw(0 - 10, 0, 20, 1, mColor);
+                    game.draw(0, 0 - 10, 1, 20, mColor);
+                    game.draw(0 - 15, 0 - 15, 10, 1, mColor);
+                    game.draw(0 + 5, 0 + 15, 10, 1, mColor);
+                    game.draw(0 + 5, 0 - 15, 10, 1, mColor);
+                    game.draw(0 - 15, 0 + 15, 10, 1, mColor);
+                    game.draw(0 - 15, 0 - 15, 1, 10, mColor);
+                    game.draw(0 + 15, 0 + 5, 1, 10, mColor);
+                    game.draw(0 + 15, 0 - 15, 1, 10, mColor);
+                    game.draw(0 - 15, 0 + 5, 1, 10, mColor);
+                    game.ctx.strokeStyle = mColor;
+                    game.ctx.beginPath();
+                    game.ctx.lineWidth = 1;
+                    game.ctx.arc(0 + 0.5, 0 + 0.5, 5, 0, 2 * Math.PI);
+                    game.ctx.stroke();
+                    game.ctx.restore();
+                }
+            });
+        }
         requestAnimationFrame(step);
     };
 });
@@ -181,8 +173,6 @@ function random(min, max) {
 /*Objects*/
 function Canvas(target, o) {
     this.elem = document.createElement('canvas');
-
-    document.body.appendChild(this.elem);
     this.ctx = this.elem.getContext('2d');
     this.elem.width = o.width;
     this.elem.height = o.height;
@@ -217,8 +207,8 @@ function Canvas(target, o) {
     this.drawPath = (object) => {
         if (!object._draw) return;
         if (!object.sprite) return;
-        if (!this.inBound(object)) return;
         if (!window._assets || !window._assets[object.sprite.data]) return;
+        if (!this.inBound(object)) return;
         let sprite = object.sprite;
         sprite.data = JSON.parse(window._assets[sprite.data]);
         let dataString = JSON.stringify(sprite.data);
@@ -247,7 +237,6 @@ function Canvas(target, o) {
                 }
             }
         };
-
         //parse equations inside the path map
         parser(sprite.data);
 
@@ -313,7 +302,6 @@ function Canvas(target, o) {
 
         this.save();
 
-        let current = this.pan;
         let target = {
             x: (object.x - ($(window).width() * 0.5)) + xSpeed,
             y: (object.y - ($(window).height() * 0.5)) + ySpeed
@@ -341,10 +329,12 @@ function Canvas(target, o) {
     this.pointerLock = function () {
         this.elem.requestPointerLock = this.elem.requestPointerLock || this.elem.mozRequestPointerLock;
         this.elem.requestPointerLock();
-    }
+    };
 
     this.exitPointerLock = function () {
         document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
         if (document.pointerLockElement === this.elem) document.exitPointerLock();
-    }
+    };
+
+    document.body.appendChild(this.elem);
 }

@@ -6,7 +6,8 @@ module.exports = function () {
         this.sprite = new _Sprite(this.x, this.y, 'bullet_01');
         this.sprite.vars.color = "#FFFF00";
         this.body = new _CircleBody(this.x, this.y, 10);
-        this.damage = 20;
+        this.damage = 5;
+        this.range = 700;
     };
 
     this.onStep = () => {
@@ -16,12 +17,12 @@ module.exports = function () {
 
         let distanceFromOwner = pointDistance(this.owner.x, this.owner.y, this.x, this.y);
 
-        if (this.x > World.dimension.width || this.x < 0 || this.y > World.dimension.height || this.y < 0 || distanceFromOwner > 800) destroy(this);
+        if (this.x > World.dimension.width || this.x < 0 || this.y > World.dimension.height || this.y < 0 || distanceFromOwner > this.range) destroy(this);
     };
 
     this.onCollision = {
         'Player': (player) => {
-            if (player._id === this.owner._id || !player._draw) return;
+            if (player._id === this.owner._id && !player.destroyed) return
             player.sprite.vars.mainColor = "#FF6600";
             player.health -= this.damage;
             setTimeout(() => player.sprite.vars.mainColor = player.originalColor, 100);

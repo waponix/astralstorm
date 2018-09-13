@@ -3,7 +3,7 @@ let app = express();
 let server = require('http').Server(app);
 let io = require('socket.io')(server);
 let ss = require('socket.io-stream');
-let fs = require('file-system');
+let stringStream = require('string-to-stream');
 
 //initialize components
 require('./components/globals/init')();
@@ -14,15 +14,12 @@ app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
+$socket = null;
+$destroySocket = null;
+
 io.on('connection', function (socket) {
     socket.emit('assets::load', _assets);
     socket.emit('world::load', World.dimension);
-
-    /*for (let i = 0; i < 10; i+=1) {
-        let dummy = createInstance('Player');
-        dummy._input.mouse.X = random(0, World.dimension.width);
-        dummy._input.mouse.Y = random(0, World.dimension.height);
-    }*/
 
     socket.on('disconnect', function () {
         for (let key in World._objects.Players) {
@@ -32,6 +29,7 @@ io.on('connection', function (socket) {
                 delete World._objects.Players[key];
             }
         }
+        $destroySocket = Promise.resolve(socket);
     });
 
     socket.on('player::new', function (data) {
@@ -58,30 +56,33 @@ io.on('connection', function (socket) {
         }
     });
 
-    let dataStream = stream(socket);
-
-    setInterval(() => {
-        if (Object.keys(World._objects).length < 1) return;
-        dataStream.then(() => {
-            dataStream = stream(socket);
-        });
-    }, 10);
-
-    function stream(socket) {
-        return new Promise((res) => {
-            let stringStream = require('string-to-stream');
-            let dataStream = ss.createStream({
-                highWaterMark: 8,
-                objectMode: true,
-            });
-
-            ss(socket).emit('data::stream', dataStream);
-            stringStream(World.arrayObjects()).pipe(dataStream);
-            dataStream.on('end', () => res());
-        });
-    }
+    $socket = Promise.resolve(socket);
 });
 
 server.listen(3000, function () {
     console.log('listening on *:3000');
+    let sockets = {};
+    setInterval(() => {
+        update();
+        if ($socket && $socket.then) {
+            $socket.then((socket) => {
+                if (!sockets[socket.id]) sockets[socket.id] = socket;
+            });
+        }
+
+        if ($destroySocket && $destroySocket.then) {
+            $destroySocket.then((socket) => {
+                delete sockets[socket.id]
+            });
+        }
+
+        if (Object.keys(sockets).length) {
+            for (let i in sockets) {
+                let socket = sockets[i];
+                let dataStream = ss.createStream();
+                ss(socket).emit('data::stream', dataStream);
+                stringStream(World.arrayObjects()).pipe(dataStream);
+            }
+        }
+    }, 10);
 });

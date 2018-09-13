@@ -5,7 +5,8 @@ module.exports = function () {
         this.sprite = new _Sprite(this.x, this.y, 'explosion_01');
         this.sprite.vars.color = colors[4];
         this.sprite.vars.radius = 0;
-        this.sprite.vars.strokeSize = 20;
+        this.sprite.vars.strokeSize = 10;
+        this.sprite.vars.strokeMax = this.sprite.vars.strokeSize;
         this.depth = 20;
     };
 
@@ -14,7 +15,7 @@ module.exports = function () {
         this.sprite.vars.radius += 1;
         this.sprite.vars.strokeSize -= 0.6;
 
-        let percent = (this.sprite.vars.strokeSize / 20) * 100;
+        let percent = (this.sprite.vars.strokeSize / this.sprite.vars.strokeMax) * 100;
 
         if (percent < 35) {
             this.sprite.vars.color = colors[0];

@@ -57,8 +57,8 @@ module.exports = function () {
         if (this._input.mouse.L && this.fireRate.timedOut()) {
             let bullet = createInstance('Bullet');
             bullet.owner = this;
-            bullet.x = this.x;
-            bullet.y = this.y;
+            bullet.x = this.x + this.body.radius * Math.cos(this.direction * Math.PI / 180);
+            bullet.y = this.y + this.body.radius * Math.sin(this.direction * Math.PI / 180);
             bullet.direction = this.direction;
             this.fireRate.reset();
         }
@@ -73,14 +73,18 @@ module.exports = function () {
             explosion.x = this.x;
             explosion.y = this.y;
             explosion.sprite.vars.strokeSize = 30;
+            explosion.sprite.vars.strokeMax = explosion.sprite.vars.strokeSize;
             explosion.sprite.vars.radius = 5;
             //create more explosions;
-            for (let i = 0; i < 10; i++) {
-                let delay = random(50, 200);
+            for (let i = 0; i < 15; i++) {
+                let delay = random(50, 400);
                 setTimeout(() => {
                     explosion = createInstance('Explosion');
-                    explosion.x = random(this.x - 25, this.x + 25);
-                    explosion.y = random(this.y - 25, this.y + 25);
+                    explosion.x = random(this.x - 40, this.x + 40);
+                    explosion.y = random(this.y - 40, this.y + 40);
+                    explosion.sprite.vars.strokeSize = random(10, 20);
+                    explosion.sprite.vars.strokeMax = explosion.sprite.vars.strokeSize;
+                    explosion.sprite.vars.radius = random(0, 10);
                 }, delay);
             }
         }

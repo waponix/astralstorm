@@ -95,6 +95,7 @@ $(document).ready(function () {
         if (window._reader && window._reader.then) {
             window._reader.then((data) => {
                 window._objects = JSON.parse(data);
+                // console.log(window._objects);
 
                 if (!window._assets) return;
 
@@ -206,10 +207,10 @@ function Canvas(target, o) {
 
     this.drawPath = (object) => {
         if (!object._draw) return;
-        if (!object.sprite) return;
-        if (!window._assets || !window._assets[object.sprite.data]) return;
+        if (!object.data) return;
+        if (!window._assets || !window._assets[object.data]) return;
         if (!this.inBound(object)) return;
-        let sprite = object.sprite;
+        let sprite = object;
         sprite.data = JSON.parse(window._assets[sprite.data]);
         let dataString = JSON.stringify(sprite.data);
 
@@ -287,9 +288,9 @@ function Canvas(target, o) {
     };
 
     this.clear = function () {
-        let square = 50;
-        for (let xi = 0; xi <= this.elem.width; xi += 50) {
-            for (let yi = 0; yi <= this.elem.height; yi += 50) {
+        let square = 200;
+        for (let xi = 0; xi <= this.elem.width; xi += square) {
+            for (let yi = 0; yi <= this.elem.height; yi += square) {
                 this.ctx.clearRect(this.bound.x + xi, this.bound.y + yi, square, square);
             }
         }

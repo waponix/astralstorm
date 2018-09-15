@@ -23,9 +23,9 @@ module.exports = function () {
     this.onCollision = {
         'Player': (player) => {
             if (player._id === this.owner._id && !player.destroyed) return
-            player.sprite.vars.mainColor = "#FF6600";
+            player.sprite.vars.color = "#FF6600";
             player.health -= this.damage;
-            setTimeout(() => player.sprite.vars.mainColor = player.originalColor, 100);
+            setTimeout(() => player.sprite.vars.color = player.originalColor, 100);
             destroy(this);
         }
     };

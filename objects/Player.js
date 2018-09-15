@@ -18,8 +18,7 @@ module.exports = function () {
         this.sprite = new _Sprite(this.x, this.y, 'craft_01');
         this.sprite.angle = this.direction;
         this.originalColor = 'rgba(' + random(150, 255) + ', ' + random(150, 255) + ', ' + random(150, 255) + ')';
-        this.sprite.vars.mainColor = this.originalColor;
-        this.sprite.vars.speed = 0;
+        this.sprite.vars.color = this.originalColor;
     };
 
     this.onStep = () => {
@@ -40,7 +39,6 @@ module.exports = function () {
 
         let distanceFromPointer = pointDistance(this.x, this.y, this._input.mouse.X, this._input.mouse.Y);
         this.speed = distanceFromPointer / 50;
-        this.sprite.vars.speed = this.speed;
         this.speed = limit(this.speed, this.speed, 8);
 
         this.x = this.x + this.speed * Math.cos(this.direction * Math.PI / 180);

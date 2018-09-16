@@ -17,6 +17,7 @@ module.exports = () => {
     //check for collision
     global.collide = (obj1, obj2) => {
         if (!obj1.body && !obj2.body) return false;
+        if (obj1._id === obj2._id) return false;
         let body1 = obj1.body;
         let body2 = obj2.body;
 
@@ -32,7 +33,7 @@ module.exports = () => {
         let obj = require('../../objects/' + objName);
         let instance = {
             _instanceOf: objName,
-            _id: id.generate() + ':' + uuid()
+            _id: id()
         };
         let objKey = pluralize(objName);
         _Object.call(instance);
@@ -91,7 +92,7 @@ module.exports = () => {
     global.drawSprite = (spriteName, x, y, options = {}, onViewport = false, sid = null) => {
         let spriteObj = new _Sprite();
         delete spriteObj._update;
-        spriteObj._id = id.generate() + ':' + uuid();
+        spriteObj._id = id();
         spriteObj.data = spriteName;
         spriteObj.x = x;
         spriteObj.y = y;
@@ -110,7 +111,7 @@ module.exports = () => {
 
     global.drawText = (text, x, y, options = {}, onViewport = false, sid = null) => {
         let textObj = new _Text();
-        textObj._id = id.generate() + ':' + uuid();
+        textObj._id = id();
         textObj.text = text;
         textObj.x = x;
         textObj.y = y;
@@ -127,4 +128,8 @@ module.exports = () => {
         if (!World._objects.Draw) World._objects.Draw = {};
         World._objects.Draw[textObj._id] = textObj;
     };
+
+    global.id = () => {
+        return id.generate() + ':' + uuid();
+    }
 };

@@ -24,10 +24,17 @@ module.exports = function () {
 
     this.onDraw = function () {
         //write the game elapsed time
+        let pos = {x: 0, y: 0};
+        pos.x = this._input.viewport.width * 0.5;
+        pos.y = 0;
+        drawSprite('ui-timebar', pos.x, pos.y, null, true, this.sid);
+
         let gameTime = new Date(World.elapsed);
+        pos.y = 15;
         gameTime = ('0' + gameTime.getMinutes()).substr(-2) + ':' + ('0' + gameTime.getSeconds()).substr(-2);
-        drawText(gameTime, this._input.viewport.width * 0.5, 20, {
+        drawText(gameTime, pos.x, pos.y, {
             align: 'center',
+            size: '10px'
         }, true, this.sid);
 
         //draw username on top of player
@@ -40,7 +47,7 @@ module.exports = function () {
         //draw game UI's for the player
         //mouse cursor;
         curRot += 2;
-        drawSprite('cursor', this._input.viewport.X, this._input.viewport.Y, {
+        drawSprite('ui-cursor', this._input.viewport.X, this._input.viewport.Y, {
             vars: {cursorColor: '#FFFFFF'},
             angle: curRot
         }, true, this.sid);

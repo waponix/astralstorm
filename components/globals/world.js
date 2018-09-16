@@ -6,10 +6,17 @@ module.exports = () => {
             width: 10000,
             height: 10000
         },
-        arrayObjects: function () {
+        arrayObjects: function (socket) {
             let arrayObjects = [];
             for (let g in this._objects) {
-                arrayObjects = arrayObjects.concat(Object.values(this._objects[g]));
+                if (g === 'Draw') {
+                    let draw = Object.values(this._objects[g]).filter((obj) => {
+                        return !obj.sid || obj.sid === socket.id;
+                    });
+                    arrayObjects = arrayObjects.concat(draw);
+                } else {
+                    arrayObjects = arrayObjects.concat(Object.values(this._objects[g]));
+                }
             }
             sort(arrayObjects, 'depth');
             for (let i in arrayObjects) {
@@ -17,25 +24,17 @@ module.exports = () => {
             }
             arrayObjects = JSON.stringify(arrayObjects, null, 0);
 
-            if (World._objects.Draw) {
-                for (let i in World._objects.Draw) {
-                    destroy(World._objects.Draw[i]);
-                }
-            }
-
             return arrayObjects;
         }
     };
-
-    global.drawBag = [];
 
     //create a simplified version of the object
     function simplifyObjects(object) {
         let spriteTemplate = {x: 0, y: 0, xPrevious: 0, yPrevious: 0, id: null, _id: null, vars: null,
             angle: 0, alpha: 1, data: null, offset: null, scale: {x: 1 ,y: 1}, _draw: true, _type: undefined,
-            onlyFor: null, onViewport: false};
-        let textTemplate = {x: 0, y: 0, _id: null, text: '', color: '#FFFFFF', style: null, _type: undefined,
-            angle: 0, alpha: 1, onlyFor: null, onViewport: false};
+            onViewport: false};
+        let textTemplate = {x: 0, y: 0, _id: null, align: 'left', text: '', color: '#FFFFFF', style: null, _type: undefined,
+            angle: 0, alpha: 1, onViewport: false};
         let template = [];
 
         switch (object._type) {

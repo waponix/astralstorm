@@ -25,7 +25,7 @@ io.on('connection', function (socket) {
         for (let key in World._objects.Players) {
             let player = World._objects.Players[key];
 
-            if (player.socketId === socket.id) {
+            if (player.sid === socket.id) {
                 delete World._objects.Players[key];
             }
         }
@@ -36,7 +36,7 @@ io.on('connection', function (socket) {
         //create player
         let newPlayer = createInstance('Player');
         newPlayer.id = data.key;
-        newPlayer.socketId = socket.id;
+        newPlayer.sid = socket.id;
         newPlayer.username = data.username;
     });
 
@@ -44,7 +44,7 @@ io.on('connection', function (socket) {
         if (World._objects.Players) {
             let player;
             for (let i in World._objects.Players) {
-                if (World._objects.Players[i].id === data.key && World._objects.Players[i].socketId === socket.id) {
+                if (World._objects.Players[i].id === data.key && World._objects.Players[i].sid === socket.id) {
                     player = World._objects.Players[i];
                 }
             }
@@ -61,10 +61,11 @@ io.on('connection', function (socket) {
 
 server.listen(3000, function () {
     console.log('listening on *:3000');
+    let timestamp = Date.now();
     let sockets = {};
     setInterval(() => {
         //always call update first before anything else
-        update();
+        update(timestamp);
 
         if ($socket && $socket.then) {
             $socket.then((socket) => {
@@ -83,8 +84,10 @@ server.listen(3000, function () {
                 let socket = sockets[i];
                 let dataStream = ss.createStream();
                 ss(socket).emit('data::stream', dataStream);
-                stringStream(World.arrayObjects()).pipe(dataStream);
+                stringStream(World.arrayObjects(socket)).pipe(dataStream);
             }
         }
+
+        clean();
     }, 10);
 });

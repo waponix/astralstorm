@@ -1,6 +1,7 @@
 module.exports = function () {
     let rotX = 0, rotY = 0;
     let destruct = new Timer(1000);
+    let curRot = 0;
 
     this.onCreate = function () {
         this.health = 100;
@@ -22,10 +23,27 @@ module.exports = function () {
     };
 
     this.onDraw = function () {
+        //write the game elapsed time
+        let gameTime = new Date(World.elapsed);
+        gameTime = ('0' + gameTime.getMinutes()).substr(-2) + ':' + ('0' + gameTime.getSeconds()).substr(-2);
+        drawText(gameTime, this._input.viewport.width * 0.5, 20, {
+            align: 'center',
+        }, true, this.sid);
+
+        //draw username on top of player
         drawText(this.username, this.x, this.y - (this.body.radius + 20), {
             size: '12px',
-            font: 'Segoe UI'
+            font: 'Arial',
+            align: 'center'
         });
+
+        //draw game UI's for the player
+        //mouse cursor;
+        curRot += 2;
+        drawSprite('cursor', this._input.viewport.X, this._input.viewport.Y, {
+            vars: {cursorColor: '#FFFFFF'},
+            angle: curRot
+        }, true, this.sid);
     };
 
     this.onStep = function () {

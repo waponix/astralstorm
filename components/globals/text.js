@@ -7,6 +7,7 @@ module.exports = () => {
         this.alpha = 1;
         this.angle = 0;
         this.text = '';
+        this.align = 'left';
         this.style = {
             size: '14px',
             font: 'Orbitron'

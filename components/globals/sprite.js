@@ -12,7 +12,7 @@ module.exports = () => {
         this.vars = {};
         this.depth = 0;
         this._type = 'sprite';
-        this.onlyFor = null;
+        this.sid = null;
         this.onViewport = false;
         this._update = (owner) => {
             this.x = owner.x;

@@ -40,7 +40,8 @@ $(document).ready(function () {
     });
 
     window._input = {
-        mouse: {X: game.elem.width * 0.5, Y: game.elem.height * 0.5}
+        mouse: {X: 0, Y: 0},
+        viewport: {X: 0, Y: 0, width: game.elem.width, height: game.elem.height}
     };
 
     //event listeners for user input
@@ -130,33 +131,15 @@ $(document).ready(function () {
                 for (let i in window._objects) {
                     let object = window._objects[i];
                     //draw objects;
-                    game.draw(object);
+                    if (!object.onViewport) game.draw(object);
                 }
 
                 game.restore();
 
-                if (!!main && !main.destroyed) {
-                    //draw player cursor
-                    let mColor = '#FFFFFF';
-                    game.ctx.setLineDash([]);
-                    game.ctx.save();
-                    game.ctx.translate(window.mouseX, window.mouseY);
-                    game.draw2(0 - 10, 0, 20, 1, mColor);
-                    game.draw2(0, 0 - 10, 1, 20, mColor);
-                    game.draw2(0 - 15, 0 - 15, 10, 1, mColor);
-                    game.draw2(0 + 5, 0 + 15, 10, 1, mColor);
-                    game.draw2(0 + 5, 0 - 15, 10, 1, mColor);
-                    game.draw2(0 - 15, 0 + 15, 10, 1, mColor);
-                    game.draw2(0 - 15, 0 - 15, 1, 10, mColor);
-                    game.draw2(0 + 15, 0 + 5, 1, 10, mColor);
-                    game.draw2(0 + 15, 0 - 15, 1, 10, mColor);
-                    game.draw2(0 - 15, 0 + 5, 1, 10, mColor);
-                    game.ctx.strokeStyle = mColor;
-                    game.ctx.beginPath();
-                    game.ctx.lineWidth = 1;
-                    game.ctx.arc(0 + 0.5, 0 + 0.5, 5, 0, 2 * Math.PI);
-                    game.ctx.stroke();
-                    game.ctx.restore();
+                for (let i in window._objects) {
+                    let object = window._objects[i];
+                    //draw objects;
+                    if (object.onViewport) game.draw(object);
                 }
             });
         }
@@ -214,7 +197,7 @@ function Canvas(target, o) {
         if (!object._draw) return;
         if (!object.data) return;
         if (!window._assets || !window._assets[object.data]) return;
-        if (!this.inBound(object)) return;
+        if (!object.onViewport && !this.inBound(object)) return;
         let sprite = object;
         sprite.data = JSON.parse(window._assets[sprite.data]);
         let dataString = JSON.stringify(sprite.data);
@@ -278,18 +261,19 @@ function Canvas(target, o) {
                 case 'at': this.ctx.arcTo(v[0], v[1], v[2], v[3], v[4]); break;
                 case 'qct': this.ctx.quadraticCurveTo(v[0], v[1], v[2], v[3]); break;
                 case 'bct': this.ctx.bezierCurveTo(v[0], v[1], v[2], v[3], v[4], v[5]); break;
+                case 'r': this.ctx.rotate(v); break;
             }
         }
         this.restore();
     };
 
     this.drawText = (object) => {
-        console.log(Object.values(object.style).join(' '));
         this.ctx.save();
         this.ctx.translate(object.x, object.y);
         this.ctx.rotate(object.angle);
         this.ctx.globalAlpha = object.alpha;
         this.ctx.fillStyle = object.color;
+        this.ctx.textAlign = object.align;
         this.ctx.font = Object.values(object.style).join(' ');
         this.ctx.fillText(object.text, 0, 0);
         this.ctx.restore();
@@ -329,6 +313,9 @@ function Canvas(target, o) {
 
         window.mouseX = Math.max(0, Math.min(window.mouseX, this.elem.width));
         window.mouseY = Math.max(0, Math.min(window.mouseY, this.elem.height));
+
+        window._input.viewport.X = window.mouseX;
+        window._input.viewport.Y = window.mouseY;
 
         this.bound = {x: this.pan.x, y: this.pan.y, w: this.pan.x + this.elem.width, h: this.pan.y + this.elem.height};
 

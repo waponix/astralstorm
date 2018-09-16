@@ -13,12 +13,12 @@ module.exports = () => {
         this.speed = 0;
         this._draw = true;
         this.depth = 0;
-        this.destroyed = false;
         this._type = 'object';
 
         this._input = {
             keyPress: {},
-            mouse: {X: 0, Y: 0}
+            mouse: {X: 0, Y: 0},
+            viewport: {X: 0, Y: 0}
         };
 
         this._destroy = (inMemory) => {

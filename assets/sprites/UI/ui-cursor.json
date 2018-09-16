@@ -1,6 +1,6 @@
 [
-  {"fs": ":cursorColor"},
-  {"ss": ":cursorColor"},
+  {"fs": ":color"},
+  {"ss": ":color"},
   {"lw": 1},
   {"sld": [0, 0]},
   "bp",

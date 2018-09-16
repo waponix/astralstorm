@@ -23,45 +23,72 @@ module.exports = function () {
     };
 
     this.onDraw = function () {
+        //draw game UI's for the player
         //write the game elapsed time
         let pos = {x: 0, y: 0};
         pos.x = this._input.viewport.width * 0.5;
         pos.y = 0;
         drawSprite('ui-timebar', pos.x, pos.y, null, true, this.sid);
-
         let gameTime = new Date(World.elapsed);
         pos.y = 15;
         gameTime = ('0' + gameTime.getMinutes()).substr(-2) + ':' + ('0' + gameTime.getSeconds()).substr(-2);
         drawText(gameTime, pos.x, pos.y, {
             align: 'center',
-            size: '10px'
+            size: '10px',
+            color: '#FFFFFF',
+            alpha: 1
+        }, true, this.sid);
+
+        //draw the health bar
+        let barColor = ['#00FF00', '#BBFF00', '#FFAA00', '#FF2200'];
+        let stat = barColor[0];
+        if (this.health <= 35) {
+            stat = barColor[3];
+        } else if (this.health <= 50) {
+            stat = barColor[2];
+        } else if (this.health <=75) {
+            stat = barColor[1];
+        }
+        drawSprite('ui-healthbar', 5, 5, {
+            vars: {
+                hp: this.health,
+                stat: stat
+            }
+        }, true, this.sid);
+        drawText(this.username.substr(0,10), 80, 30, {
+            size: '10px',
+            color: '#FFFFFF',
+            align: 'center',
+            font: 'Segoe UI Light'
         }, true, this.sid);
 
         //draw username on top of player
-        drawText(this.username, this.x, this.y - (this.body.radius + 20), {
+        drawText(this.username.substr(0,10), this.x + 10, this.y - (this.body.radius + 20), {
             size: '12px',
-            font: 'Arial',
+            font: 'Segoe UI Light',
             align: 'center'
-        });
+        }, false, null, this.sid);
+        drawSprite('ui-mini-healthbar', this.x, this.y - (this.body.radius + 5), {
+            vars: {
+                hp: this.health,
+                stat: stat
+            }
+        }, false, null, this.sid);
 
-        //draw game UI's for the player
         //mouse cursor;
         curRot += 2;
         drawSprite('ui-cursor', this._input.viewport.X, this._input.viewport.Y, {
-            vars: {cursorColor: '#FFFFFF'},
+            vars: {color: '#00FFFF'},
             angle: curRot
         }, true, this.sid);
     };
 
     this.onStep = function () {
-        if (this.health <= 0) destroy(this, false);
-        if (this.destroyed) {
-            destruct.tick();
-            if (destruct.timedOut()) {
-                delete this.onDestroy;
-                destroy(this);
-            }
-            return;
+        if (this.health <= 0) {
+            this.health = 0;
+            destroy(this);
+        } else if (this.health >= 100) {
+            this.health = 100;
         }
 
         rotX = this._input.mouse.X - this.x;
@@ -97,26 +124,25 @@ module.exports = function () {
     };
 
     this.onDestroy = function () {
-        if (!this.destroyed) {
-            this.destroyed = true;
-            let explosion = createInstance('Explosion');
-            explosion.x = this.x;
-            explosion.y = this.y;
-            explosion.sprite.vars.strokeSize = 30;
-            explosion.sprite.vars.strokeMax = explosion.sprite.vars.strokeSize;
-            explosion.sprite.vars.radius = 5;
-            //create more explosions;
-            for (let i = 0; i < 15; i++) {
-                let delay = random(50, 400);
-                setTimeout(() => {
-                    explosion = createInstance('Explosion');
-                    explosion.x = random(this.x - 40, this.x + 40);
-                    explosion.y = random(this.y - 40, this.y + 40);
-                    explosion.sprite.vars.strokeSize = random(10, 20);
-                    explosion.sprite.vars.strokeMax = explosion.sprite.vars.strokeSize;
-                    explosion.sprite.vars.radius = random(0, 10);
-                }, delay);
-            }
+        this.destroyed = true;
+        let explosion = createInstance('Explosion');
+        explosion.x = this.x;
+        explosion.y = this.y;
+        explosion.sprite.vars.strokeSize = 30;
+        explosion.sprite.vars.strokeMax = explosion.sprite.vars.strokeSize;
+        explosion.sprite.vars.radius = 5;
+        //create more explosions;
+        for (let i = 0; i < 15; i++) {
+            let delay = random(50, 400);
+            setTimeout(() => {
+                explosion = createInstance('Explosion');
+                explosion.x = random(this.x - 40, this.x + 40);
+                explosion.y = random(this.y - 40, this.y + 40);
+                explosion.sprite.vars.strokeSize = random(10, 20);
+                explosion.sprite.vars.strokeMax = explosion.sprite.vars.strokeSize;
+                explosion.sprite.vars.radius = random(0, 10);
+            }, delay);
         }
+        this.socket.emit('dFlag', true);
     };
 };

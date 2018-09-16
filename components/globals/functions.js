@@ -89,7 +89,7 @@ module.exports = () => {
         return Math.min(Math.max(value, min), max);
     };
 
-    global.drawSprite = (spriteName, x, y, options = {}, onViewport = false, sid = null) => {
+    global.drawSprite = (spriteName, x, y, options = {}, onViewport = false, sid = null, exceptSid = null) => {
         let spriteObj = new _Sprite();
         delete spriteObj._update;
         spriteObj._id = id();
@@ -97,8 +97,13 @@ module.exports = () => {
         spriteObj.x = x;
         spriteObj.y = y;
         spriteObj.sid = sid;
+        if (exceptSid && Array.isArray(exceptSid)) {
+            exceptSid = exceptSid.join(',');
+        }
+        spriteObj.filter = exceptSid;
         spriteObj.onViewport = onViewport;
         if (options) {
+            if (options.depth) spriteObj.depth = options.depth;
             if (options.vars) spriteObj.vars = options.vars;
             if (options.angle) spriteObj.angle = options.angle;
             if (options.alpha) spriteObj.alpha = options.alpha;
@@ -109,15 +114,20 @@ module.exports = () => {
         World._objects.Draw[spriteObj._id] = spriteObj;
     };
 
-    global.drawText = (text, x, y, options = {}, onViewport = false, sid = null) => {
+    global.drawText = (text, x, y, options = {}, onViewport = false, sid = null, exceptSid = null) => {
         let textObj = new _Text();
         textObj._id = id();
         textObj.text = text;
         textObj.x = x;
         textObj.y = y;
         textObj.sid = sid;
+        if (exceptSid && Array.isArray(exceptSid)) {
+            exceptSid = exceptSid.join(',');
+        }
+        textObj.filter = exceptSid;
         textObj.onViewport = onViewport;
         if (options) {
+            if (options.depth) textObj.depth = options.depth;
             if (options.angle) textObj.angle = options.angle;
             if (options.alpha) textObj.alpha = options.alpha;
             if (options.color) textObj.color = options.color;

@@ -15,13 +15,16 @@ $(document).ready(function () {
         window._world = data;
     });
 
+    window._dFlag = null;
+
     $('#homescreen #join-button').on('click', () => {
         let username = $('#homescreen #username').val();
-        if (username) {
+        if (username && !window.playerKey) {
             window.playerKey = username + random(1000, 1000000);
             socket.emit('player::new', {key: window.playerKey, username});
             game.pointerLock();
             $('#homescreen').hide();
+            socket.once('dFlag', (flag) => window._dFlag = Promise.resolve(flag));
         } else if (!$('#homescreen #username').hasClass('field-empty')){
             $('#homescreen #username').addClass('field-empty');
         }
@@ -93,22 +96,28 @@ $(document).ready(function () {
     function step(tick) {
         socket.emit('io::update', {key: window.playerKey, io: window._input});
 
+        if (window._dFlag && window._dFlag.then) {
+            window._dFlag.then((flag) => {
+                if (flag && $('#homescreen').is(':hidden')) {
+                    window.playerKey = null;
+                    window._dFlag = null;
+                    $('#homescreen').fadeIn();
+                    game.exitPointerLock();
+                }
+            });
+        }
+
         if (window._reader && window._reader.then) {
             window._reader.then((data) => {
                 window._objects = JSON.parse(data);
 
                 if (!window._assets) return;
 
-                let main = window._objects ? window._objects.find((obj) => {
+                let main = window._objects.find((obj) => {
                     return obj.id === window.playerKey;
-                }) : null;
+                });
 
                 if (!!main) game.follow(main);
-
-                if (!!main && main.destroyed && $('#homescreen').is(':hidden')) {
-                    $('#homescreen').fadeIn();
-                    game.exitPointerLock();
-                }
 
                 game.clear();
 
@@ -139,7 +148,12 @@ $(document).ready(function () {
                 for (let i in window._objects) {
                     let object = window._objects[i];
                     //draw objects;
-                    if (object.onViewport) game.draw(object);
+                    if (object.onViewport && object._type === 'sprite') game.draw(object);
+                }
+                for (let i in window._objects) {
+                    let object = window._objects[i];
+                    //draw objects;
+                    if (object.onViewport && object._type === 'text') game.draw(object);
                 }
             });
         }
@@ -161,18 +175,6 @@ function Canvas(target, o) {
     this.pan = {x: 0, y: 0};
     this.bound = {x: this.pan.x, y: this.pan.y, w: this.pan.x + this.elem.width, h: this.pan.y + this.elem.height};
 
-    this.draw2 = function (x, y, w, h, fillStyle, lineWidth, strokeStyle) {
-        if (fillStyle) {
-            this.ctx.fillStyle = fillStyle;
-            this.ctx.fillRect(x, y, w, h);
-        }
-        if (strokeStyle && lineWidth) {
-            this.ctx.strokeStyle = strokeStyle;
-            this.ctx.lineWidth = lineWidth;
-            this.ctx.strokeRect(x, y, w, h);
-        }
-    };
-
     this.save = () => {
         this.ctx.save();
     };
@@ -189,7 +191,7 @@ function Canvas(target, o) {
     this.draw = (object) => {
         switch (object._type) {
             case 'sprite': this.drawSprite(object); break;
-            case 'text': this.drawText(object); break;
+            case 'text': this.drawText(object);
         }
     };
 
@@ -268,7 +270,7 @@ function Canvas(target, o) {
     };
 
     this.drawText = (object) => {
-        this.ctx.save();
+        this.save();
         this.ctx.translate(object.x, object.y);
         this.ctx.rotate(object.angle);
         this.ctx.globalAlpha = object.alpha;
@@ -276,7 +278,7 @@ function Canvas(target, o) {
         this.ctx.textAlign = object.align;
         this.ctx.font = Object.values(object.style).join(' ');
         this.ctx.fillText(object.text, 0, 0);
-        this.ctx.restore();
+        this.restore();
     };
 
     this.clear = function () {

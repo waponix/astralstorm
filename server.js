@@ -37,6 +37,7 @@ io.on('connection', function (socket) {
         let newPlayer = createInstance('Player');
         newPlayer.id = data.key;
         newPlayer.sid = socket.id;
+        newPlayer.socket = socket;
         newPlayer.username = data.username;
     });
 

@@ -12,9 +12,9 @@ module.exports = () => {
             size: '14px',
             font: 'Orbitron'
         };
-        this.depth = 9999;
+        this.depth = 0;
         this._type = 'text';
-        this.onlyFor = null;
+        this.sid = null;
         this.onViewport = false;
 
         this._destroy = () => {

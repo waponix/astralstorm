@@ -1,4 +1,5 @@
 let fs = require('file-system');
+let $path = require('path');
 module.exports = () => {
     global._Sprite = function (x, y, data) {
         this._id = null;
@@ -26,8 +27,17 @@ module.exports = () => {
 
     //prepare sprites and add to _assets group
     global._assets = {};
-    let sprites = fs.readdirSync('assets/sprites');
-    for (let s in sprites) {
-        _assets[sprites[s].split('.')[0]] = fs.readFileSync('assets/sprites/' + sprites[s], 'utf-8');
-    }
+    deepScanSprites('assets/sprites');
+
+    function deepScanSprites(path) {
+        let paths = fs.readdirSync(path);
+        for (let i in paths) {
+            let file = $path.join(path, paths[i]);
+            if (fs.lstatSync(file).isDirectory()) {
+                deepScanSprites(file);
+            } else if (fs.lstatSync(file).isFile()) {
+                _assets[paths[i].split('.')[0]] = fs.readFileSync(file, 'utf-8');
+            }
+        }
+    };
 };

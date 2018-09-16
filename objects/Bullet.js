@@ -22,7 +22,7 @@ module.exports = function () {
 
     this.onCollision = {
         'Player': (player) => {
-            if (player._id === this.owner._id && !player.destroyed) return
+            if (player._id === this.owner._id) return;
             player.sprite.vars.color = "#FF6600";
             player.health -= this.damage;
             setTimeout(() => player.sprite.vars.color = player.originalColor, 100);

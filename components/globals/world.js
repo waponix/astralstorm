@@ -3,15 +3,20 @@ module.exports = () => {
         _objects: {},
         elapsed: 0,
         dimension: {
-            width: 10000,
-            height: 10000
+            width: 2000,
+            height: 2000
         },
         arrayObjects: function (socket) {
             let arrayObjects = [];
             for (let g in this._objects) {
                 if (g === 'Draw') {
                     let draw = Object.values(this._objects[g]).filter((obj) => {
+                        //only draw objects only for the specified sid
                         return !obj.sid || obj.sid === socket.id;
+                    }).filter((obj) => {
+                        //filter out draw objects for the specified sids
+                        let regex = new RegExp(socket.id, 'g');
+                        return !obj.filter || !regex.test(obj.filter);
                     });
                     arrayObjects = arrayObjects.concat(draw);
                 } else {

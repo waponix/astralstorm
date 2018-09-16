@@ -2,7 +2,7 @@ module.exports = function () {
     let rotX = 0, rotY = 0;
     let destruct = new Timer(1000);
 
-    this.onCreate = () => {
+    this.onCreate = function () {
         this.health = 100;
         this.destroyed = false;
         this.fireRate = new Timer(0.02, true);
@@ -21,7 +21,14 @@ module.exports = function () {
         this.sprite.vars.color = this.originalColor;
     };
 
-    this.onStep = () => {
+    this.onDraw = function () {
+        drawText(this.username, this.x, this.y - (this.body.radius + 20), {
+            size: '12px',
+            font: 'Segoe UI'
+        });
+    };
+
+    this.onStep = function () {
         if (this.health <= 0) destroy(this, false);
         if (this.destroyed) {
             destruct.tick();
@@ -64,7 +71,7 @@ module.exports = function () {
         this.sprite.angle = this.direction;
     };
 
-    this.onDestroy = () => {
+    this.onDestroy = function () {
         if (!this.destroyed) {
             this.destroyed = true;
             let explosion = createInstance('Explosion');

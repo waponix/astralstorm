@@ -19,11 +19,17 @@ $(document).ready(function () {
         let username = $('#homescreen #username').val();
         if (username) {
             window.playerKey = username + random(1000, 1000000);
-            socket.emit('player::new', {key: window.playerKey, name});
+            socket.emit('player::new', {key: window.playerKey, username});
             game.pointerLock();
             $('#homescreen').hide();
         } else if (!$('#homescreen #username').hasClass('field-empty')){
             $('#homescreen #username').addClass('field-empty');
+        }
+    });
+
+    $('#homescreen #username').on('keydown', (e) => {
+        if (e.which === 13) {
+            $('#homescreen #join-button').triggerHandler('click');
         }
     });
 
@@ -36,12 +42,6 @@ $(document).ready(function () {
     window._input = {
         mouse: {X: game.elem.width * 0.5, Y: game.elem.height * 0.5}
     };
-
-    $('#homescreen #username').on('keydown', (e) => {
-        if (e.which === 13) {
-            $('#homescreen #join-button').triggerHandler('click');
-        }
-    });
 
     //event listeners for user input
     $(document).on('keydown keyup mousedown mouseup click', (e) => {
@@ -95,7 +95,6 @@ $(document).ready(function () {
         if (window._reader && window._reader.then) {
             window._reader.then((data) => {
                 window._objects = JSON.parse(data);
-                // console.log(window._objects);
 
                 if (!window._assets) return;
 
@@ -121,7 +120,6 @@ $(document).ready(function () {
                     game.ctx.lineTo(i, window._world.height);
                     game.ctx.stroke();
                 }
-
                 for (let i = 0; i <= window._world.height; i += 100) {
                     game.ctx.beginPath();
                     game.ctx.moveTo(0, i);
@@ -132,7 +130,7 @@ $(document).ready(function () {
                 for (let i in window._objects) {
                     let object = window._objects[i];
                     //draw objects;
-                    game.drawPath(object);
+                    game.draw(object);
                 }
 
                 game.restore();
@@ -143,16 +141,16 @@ $(document).ready(function () {
                     game.ctx.setLineDash([]);
                     game.ctx.save();
                     game.ctx.translate(window.mouseX, window.mouseY);
-                    game.draw(0 - 10, 0, 20, 1, mColor);
-                    game.draw(0, 0 - 10, 1, 20, mColor);
-                    game.draw(0 - 15, 0 - 15, 10, 1, mColor);
-                    game.draw(0 + 5, 0 + 15, 10, 1, mColor);
-                    game.draw(0 + 5, 0 - 15, 10, 1, mColor);
-                    game.draw(0 - 15, 0 + 15, 10, 1, mColor);
-                    game.draw(0 - 15, 0 - 15, 1, 10, mColor);
-                    game.draw(0 + 15, 0 + 5, 1, 10, mColor);
-                    game.draw(0 + 15, 0 - 15, 1, 10, mColor);
-                    game.draw(0 - 15, 0 + 5, 1, 10, mColor);
+                    game.draw2(0 - 10, 0, 20, 1, mColor);
+                    game.draw2(0, 0 - 10, 1, 20, mColor);
+                    game.draw2(0 - 15, 0 - 15, 10, 1, mColor);
+                    game.draw2(0 + 5, 0 + 15, 10, 1, mColor);
+                    game.draw2(0 + 5, 0 - 15, 10, 1, mColor);
+                    game.draw2(0 - 15, 0 + 15, 10, 1, mColor);
+                    game.draw2(0 - 15, 0 - 15, 1, 10, mColor);
+                    game.draw2(0 + 15, 0 + 5, 1, 10, mColor);
+                    game.draw2(0 + 15, 0 - 15, 1, 10, mColor);
+                    game.draw2(0 - 15, 0 + 5, 1, 10, mColor);
                     game.ctx.strokeStyle = mColor;
                     game.ctx.beginPath();
                     game.ctx.lineWidth = 1;
@@ -180,7 +178,7 @@ function Canvas(target, o) {
     this.pan = {x: 0, y: 0};
     this.bound = {x: this.pan.x, y: this.pan.y, w: this.pan.x + this.elem.width, h: this.pan.y + this.elem.height};
 
-    this.draw = function (x, y, w, h, fillStyle, lineWidth, strokeStyle) {
+    this.draw2 = function (x, y, w, h, fillStyle, lineWidth, strokeStyle) {
         if (fillStyle) {
             this.ctx.fillStyle = fillStyle;
             this.ctx.fillRect(x, y, w, h);
@@ -205,7 +203,14 @@ function Canvas(target, o) {
         return obj.x <= this.bound.w + offset && obj.x >= this.bound.x - offset && obj.y <= this.bound.h + offset && obj.y >= this.bound.y - offset;
     };
 
-    this.drawPath = (object) => {
+    this.draw = (object) => {
+        switch (object._type) {
+            case 'sprite': this.drawSprite(object); break;
+            case 'text': this.drawText(object); break;
+        }
+    };
+
+    this.drawSprite = (object) => {
         if (!object._draw) return;
         if (!object.data) return;
         if (!window._assets || !window._assets[object.data]) return;
@@ -278,13 +283,16 @@ function Canvas(target, o) {
         this.restore();
     };
 
-    this.write = (text, x, y, font, fillStyle) => {
-
-        if (text && fillStyle && font) {
-            this.ctx.fillStyle = fillStyle;
-            this.ctx.font = font;
-            this.ctx.fillText(text, x, y);
-        }
+    this.drawText = (object) => {
+        console.log(Object.values(object.style).join(' '));
+        this.ctx.save();
+        this.ctx.translate(object.x, object.y);
+        this.ctx.rotate(object.angle);
+        this.ctx.globalAlpha = object.alpha;
+        this.ctx.fillStyle = object.color;
+        this.ctx.font = Object.values(object.style).join(' ');
+        this.ctx.fillText(object.text, 0, 0);
+        this.ctx.restore();
     };
 
     this.clear = function () {

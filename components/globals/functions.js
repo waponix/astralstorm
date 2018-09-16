@@ -54,7 +54,7 @@ module.exports = () => {
             let entities = World._objects[a];
             if (Object.keys(entities).length) {
                 for (let i in entities) {
-                    entities[i]._update();
+                    if (entities[i]._update) entities[i]._update();
                 }
             }
         }
@@ -75,5 +75,22 @@ module.exports = () => {
 
     global.limit = (value, min, max) => {
         return Math.min(Math.max(value, min), max);
+    };
+
+    global.drawText = (text, x, y, options = {}, onViewport = false, onlyFor = null) => {
+        let textObj = new _Text();
+        textObj._id = id.generate() + ':' + uuid();
+        textObj.text = text;
+        textObj.x = x;
+        textObj.y = y;
+        textObj.onlyFor = onlyFor;
+        textObj.onViewport = onViewport;
+        if (options.angle) textObj.angle = options.angle;
+        if (options.alpha) textObj.alpha = options.alpha;
+        if (options.color) textObj.color = options.color;
+        if (options.size) textObj.style.size = options.size;
+        if (options.font) textObj.style.font = options.font;
+        if (!World._objects.Draw) World._objects.Draw = {};
+        World._objects.Draw[textObj._id] = textObj;
     };
 };

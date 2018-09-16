@@ -13,6 +13,8 @@ module.exports = () => {
         this.speed = 0;
         this._draw = true;
         this.depth = 0;
+        this.destroyed = false;
+        this._type = 'object';
 
         this._input = {
             keyPress: {},
@@ -67,6 +69,7 @@ module.exports = () => {
             this.xPrevious = this.x;
             this.yPrevious = this.y;
             if (this.onStep) this.onStep();
+            if (this.onDraw) this.onDraw();
         };
     };
 

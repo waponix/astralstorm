@@ -1,7 +1,7 @@
 module.exports = function () {
     let colors = ["#220000", "#FF0000", "#FF4400", "#FF8800", "#FFFF55"];
 
-    this.onCreate = () => {
+    this.onCreate = function () {
         this.sprite = new _Sprite(this.x, this.y, 'explosion_01');
         this.sprite.vars.color = colors[4];
         this.sprite.vars.radius = 0;
@@ -10,7 +10,7 @@ module.exports = function () {
         this.depth = 20;
     };
 
-    this.onStep = () => {
+    this.onStep = function () {
         this.sprite.vars.dashSize -= 1;
         this.sprite.vars.radius += 1;
         this.sprite.vars.strokeSize -= 0.6;

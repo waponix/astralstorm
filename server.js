@@ -37,7 +37,7 @@ io.on('connection', function (socket) {
         let newPlayer = createInstance('Player');
         newPlayer.id = data.key;
         newPlayer.socketId = socket.id;
-        newPlayer.username = data.name;
+        newPlayer.username = data.username;
     });
 
     socket.on('io::update', (data) => {
@@ -63,7 +63,9 @@ server.listen(3000, function () {
     console.log('listening on *:3000');
     let sockets = {};
     setInterval(() => {
+        //always call update first before anything else
         update();
+
         if ($socket && $socket.then) {
             $socket.then((socket) => {
                 if (!sockets[socket.id]) sockets[socket.id] = socket;

@@ -4,4 +4,5 @@ module.exports = () => {
     require('./object')();
     require('./body')();
     require('./sprite')();
+    require('./text')();
 };

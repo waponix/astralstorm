@@ -1,5 +1,5 @@
 module.exports = function () {
-    this.onCreate = () => {
+    this.onCreate = function () {
         this.owner = null;
         this.radius = 2.5;
         this.speed = 15;
@@ -10,7 +10,7 @@ module.exports = function () {
         this.range = 700;
     };
 
-    this.onStep = () => {
+    this.onStep = function () {
         this.sprite.angle = this.direction;
         this.x = this.x + this.speed * Math.cos(this.direction * Math.PI / 180);
         this.y = this.y + this.speed * Math.sin(this.direction * Math.PI / 180);
@@ -30,7 +30,7 @@ module.exports = function () {
         }
     };
 
-    this.onDestroy = () => {
+    this.onDestroy = function () {
         let explosion = createInstance('Explosion');
         explosion.x = this.x;
         explosion.y = this.y;

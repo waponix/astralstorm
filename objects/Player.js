@@ -144,5 +144,8 @@ module.exports = function () {
             }, delay);
         }
         this.socket.emit('dFlag', true);
+        let drop = createInstance('HealthPickup');
+        drop.x = this.x;
+        drop.y = this.y;
     };
 };

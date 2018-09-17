@@ -9,8 +9,8 @@ module.exports = function () {
         this.fireRate = new Timer(0.02, true);
         this.fireRate.zeroOut();
         this.depth = 10;
-        this.x = random(70, World.dimension.width - 70);
-        this.y = random(70,  World.dimension.height - 70);
+        this.x = random(0, World.dimension.width);
+        this.y = random(0,  World.dimension.height);
         this._draw = false;
         setTimeout(() => this._draw = true, 200);
 
@@ -20,6 +20,10 @@ module.exports = function () {
         this.sprite.angle = this.direction;
         this.originalColor = 'rgba(' + random(150, 255) + ', ' + random(150, 255) + ', ' + random(150, 255) + ')';
         this.sprite.vars.color = this.originalColor;
+
+        let hp = createInstance('HealthPickup');
+        hp.x = random(0, World.dimension.width);
+        hp.y = random(0, World.dimension.height);
     };
 
     this.onDraw = function () {
@@ -28,7 +32,7 @@ module.exports = function () {
         let pos = {x: 0, y: 0};
         pos.x = this._input.viewport.width * 0.5;
         pos.y = 0;
-        drawSprite('ui-timebar', pos.x, pos.y, null, true, this.sid);
+        drawSprite('ui_timebar', pos.x, pos.y, null, true, this.sid);
         let gameTime = new Date(World.elapsed);
         pos.y = 15;
         gameTime = ('0' + gameTime.getMinutes()).substr(-2) + ':' + ('0' + gameTime.getSeconds()).substr(-2);
@@ -49,7 +53,7 @@ module.exports = function () {
         } else if (this.health <=75) {
             stat = barColor[1];
         }
-        drawSprite('ui-healthbar', 5, 5, {
+        drawSprite('ui_healthbar', 5, 5, {
             vars: {
                 hp: this.health,
                 stat: stat
@@ -68,7 +72,7 @@ module.exports = function () {
             font: 'Segoe UI Light',
             align: 'center'
         }, false, null, this.sid);
-        drawSprite('ui-mini-healthbar', this.x, this.y - (this.body.radius + 5), {
+        drawSprite('ui_mini_healthbar', this.x, this.y - (this.body.radius + 5), {
             vars: {
                 hp: this.health,
                 stat: stat
@@ -77,7 +81,7 @@ module.exports = function () {
 
         //mouse cursor;
         curRot += 2;
-        drawSprite('ui-cursor', this._input.viewport.X, this._input.viewport.Y, {
+        drawSprite('ui_cursor', this._input.viewport.X, this._input.viewport.Y, {
             vars: {color: '#00FFFF'},
             angle: curRot
         }, true, this.sid);
@@ -102,10 +106,10 @@ module.exports = function () {
 
         this.x = this.x + this.speed * Math.cos(this.direction * Math.PI / 180);
         this.y = this.y + this.speed * Math.sin(this.direction * Math.PI / 180);
-        this.x = (this.x <= 70) ? 70 : this.x;
-        this.y = (this.y <= 70) ? 70 : this.y;
-        this.x = (this.x >= World.dimension.width - 70) ? World.dimension.width - 70 : this.x;
-        this.y = (this.y >= World.dimension.height - 70) ? World.dimension.height - 70 : this.y;
+        this.x = (this.x <= 0) ? 0 : this.x;
+        this.y = (this.y <= 0) ? 0 : this.y;
+        this.x = (this.x >= World.dimension.width) ? World.dimension.width : this.x;
+        this.y = (this.y >= World.dimension.height) ? World.dimension.height : this.y;
 
         this.sprite.x = this.x;
         this.sprite.y = this.y;

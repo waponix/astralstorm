@@ -64,6 +64,7 @@ server.listen(3000, function () {
     console.log('listening on *:3000');
     let timestamp = Date.now();
     let sockets = {};
+
     setInterval(() => {
         //always call update first before anything else
         update(timestamp);

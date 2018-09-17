@@ -21,7 +21,7 @@ module.exports = function () {
     };
 
     this.onCollision = {
-        'Player': (player) => {
+        Player: (player) => {
             if (player._id === this.owner._id) return;
             player.sprite.vars.color = "#FF6600";
             player.health -= this.damage;

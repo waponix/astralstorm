@@ -3,8 +3,8 @@ module.exports = () => {
         _objects: {},
         elapsed: 0,
         dimension: {
-            width: 2000,
-            height: 2000
+            width: 3000,
+            height: 3000
         },
         arrayObjects: function (socket) {
             let arrayObjects = [];

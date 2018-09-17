@@ -17,8 +17,7 @@ module.exports = () => {
 
         this._input = {
             keyPress: {},
-            mouse: {X: 0, Y: 0},
-            viewport: {X: 0, Y: 0}
+            mouse: {X: 0, Y: 0}
         };
 
         this._destroy = (inMemory) => {
@@ -37,6 +36,7 @@ module.exports = () => {
         };
 
         this._update = () => {
+            if (this.socket) Viewport.setData(this.socket.viewport);
             //correct angle when less than 0
             if (this.direction < 0) {
                 this.direction = 360 + this.direction;

@@ -18,6 +18,7 @@ $socket = null;
 $destroySocket = null;
 
 io.on('connection', function (socket) {
+    socket.viewport = {};
     socket.emit('assets::load', _assets);
     socket.emit('world::load', World.dimension);
 
@@ -57,6 +58,10 @@ io.on('connection', function (socket) {
         }
     });
 
+    socket.on('viewport', (viewport) => {
+        socket.viewport = viewport;
+    });
+
     $socket = Promise.resolve(socket);
 });
 
@@ -68,7 +73,6 @@ server.listen(3000, function () {
     setInterval(() => {
         //always call update first before anything else
         update(timestamp);
-
         if ($socket && $socket.then) {
             $socket.then((socket) => {
                 if (!sockets[socket.id]) sockets[socket.id] = socket;

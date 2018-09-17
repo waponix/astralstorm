@@ -20,17 +20,13 @@ module.exports = function () {
         this.sprite.angle = this.direction;
         this.originalColor = 'rgba(' + random(150, 255) + ', ' + random(150, 255) + ', ' + random(150, 255) + ')';
         this.sprite.vars.color = this.originalColor;
-
-        let hp = createInstance('HealthPickup');
-        hp.x = random(0, World.dimension.width);
-        hp.y = random(0, World.dimension.height);
     };
 
     this.onDraw = function () {
         //draw game UI's for the player
         //write the game elapsed time
         let pos = {x: 0, y: 0};
-        pos.x = this._input.viewport.width * 0.5;
+        pos.x = Viewport.width() * 0.5;
         pos.y = 0;
         drawSprite('ui_timebar', pos.x, pos.y, null, true, this.sid);
         let gameTime = new Date(World.elapsed);
@@ -81,7 +77,7 @@ module.exports = function () {
 
         //mouse cursor;
         curRot += 2;
-        drawSprite('ui_cursor', this._input.viewport.X, this._input.viewport.Y, {
+        drawSprite('ui_cursor', Viewport.mouseX(), Viewport.mouseY(), {
             vars: {color: '#00FFFF'},
             angle: curRot
         }, true, this.sid);

@@ -141,5 +141,5 @@ module.exports = () => {
 
     global.id = () => {
         return id.generate() + ':' + uuid();
-    }
+    };
 };

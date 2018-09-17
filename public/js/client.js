@@ -42,10 +42,7 @@ $(document).ready(function () {
         }
     });
 
-    window._input = {
-        mouse: {X: 0, Y: 0},
-        viewport: {X: 0, Y: 0, width: game.elem.width, height: game.elem.height}
-    };
+    window._input = {mouse: {X: 0, Y: 0}};
 
     //event listeners for user input
     $(document).on('keydown keyup mousedown mouseup click', (e) => {
@@ -95,6 +92,14 @@ $(document).ready(function () {
 
     function step(tick) {
         socket.emit('io::update', {key: window.playerKey, io: window._input});
+        socket.emit('viewport', {
+            x: game.pan.x,
+            y: game.pan.y,
+            width: game.elem.width,
+            height: game.elem.height,
+            mouseX: window.mouseX,
+            mouseY: window.mouseY
+        });
 
         if (window._dFlag && window._dFlag.then) {
             window._dFlag.then((flag) => {
@@ -315,9 +320,6 @@ function Canvas(target, o) {
 
         window.mouseX = Math.max(0, Math.min(window.mouseX, this.elem.width));
         window.mouseY = Math.max(0, Math.min(window.mouseY, this.elem.height));
-
-        window._input.viewport.X = window.mouseX;
-        window._input.viewport.Y = window.mouseY;
 
         this.bound = {x: this.pan.x, y: this.pan.y, w: this.pan.x + this.elem.width, h: this.pan.y + this.elem.height};
 

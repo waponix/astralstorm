@@ -3,10 +3,11 @@ module.exports = () => {
         _objects: {},
         elapsed: 0,
         dimension: {
-            width: 3000,
-            height: 3000
+            width: 10000,
+            height: 10000
         },
         arrayObjects: function (socket) {
+            Viewport.setData(socket.viewport);
             let arrayObjects = [];
             for (let g in this._objects) {
                 if (g === 'Draw') {
@@ -23,6 +24,12 @@ module.exports = () => {
                     arrayObjects = arrayObjects.concat(Object.values(this._objects[g]));
                 }
             }
+
+            arrayObjects = arrayObjects.filter((obj) => {
+                let flag =  (obj.sid && obj.sid === socket.id) || (!obj.onViewport && Viewport.inBound(obj, 100)) || false;
+                return flag;
+            });
+
             sort(arrayObjects, 'depth');
             for (let i in arrayObjects) {
                 arrayObjects[i] = simplifyObjects(arrayObjects[i]);

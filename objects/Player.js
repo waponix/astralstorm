@@ -26,7 +26,7 @@ module.exports = function () {
         //draw game UI's for the player
         //write the game elapsed time
         let pos = {x: 0, y: 0};
-        pos.x = Viewport.width() * 0.5;
+        pos.x = Viewport.width * 0.5;
         pos.y = 0;
         drawSprite('ui_timebar', pos.x, pos.y, null, true, this.sid);
         let gameTime = new Date(World.elapsed);
@@ -77,7 +77,7 @@ module.exports = function () {
 
         //mouse cursor;
         curRot += 2;
-        drawSprite('ui_cursor', Viewport.mouseX(), Viewport.mouseY(), {
+        drawSprite('ui_cursor', Viewport.mouseX, Viewport.mouseY, {
             vars: {color: '#00FFFF'},
             angle: curRot
         }, true, this.sid);

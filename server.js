@@ -71,8 +71,6 @@ server.listen(3000, function () {
     let sockets = {};
 
     setInterval(() => {
-        //always call update first before anything else
-        update(timestamp);
         if ($socket && $socket.then) {
             $socket.then((socket) => {
                 if (!sockets[socket.id]) sockets[socket.id] = socket;
@@ -93,7 +91,7 @@ server.listen(3000, function () {
                 stringStream(World.arrayObjects(socket)).pipe(dataStream);
             }
         }
-
         clean();
+        update(timestamp);
     }, 10);
 });

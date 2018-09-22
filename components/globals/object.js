@@ -36,7 +36,7 @@ module.exports = () => {
         };
 
         this._update = () => {
-            if (this.socket) Viewport.setData(this.socket.viewport);
+            if (this.socket) Viewport._data = this.socket.viewport;
             //correct angle when less than 0
             if (this.direction < 0) {
                 this.direction = 360 + this.direction;

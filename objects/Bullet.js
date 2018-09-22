@@ -27,6 +27,10 @@ module.exports = function () {
             player.health -= this.damage;
             setTimeout(() => player.sprite.vars.color = player.originalColor, 100);
             destroy(this);
+        },
+        Bullet: (bullet) => {
+            destroy(bullet);
+            destroy(this);
         }
     };
 

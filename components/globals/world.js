@@ -7,7 +7,7 @@ module.exports = () => {
             height: 10000
         },
         arrayObjects: function (socket) {
-            Viewport.setData(socket.viewport);
+            Viewport._data = socket.viewport;
             let arrayObjects = [];
             for (let g in this._objects) {
                 if (g === 'Draw') {

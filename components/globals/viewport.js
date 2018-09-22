@@ -11,35 +11,24 @@ module.exports = () => {
             mouseY: 0
         };
 
-        this.width = function () {
-                return data.width;
-            };
-        this.height = function () {
-                return data.height;
-            };
-        this.x = function () {
-                return data.x;
-            };
-        this.y = function () {
-                return data.y;
-            };
-        this.mouseX = function () {
-                return data.mouseX;
-            };
-        this.mouseY = function () {
-                return data.mouseY;
-            };
+        Object.defineProperties(this, {
+            width: {get() {return data.width;}},
+            height: {get() {return data.height;}},
+            x: {get() {return data.x;}},
+            y: {get() {return data.y;}},
+            mouseX: {get() {return data.mouseX;}},
+            mouseY: {get() {return data.mouseY;}},
+            _data: {set(vData) {data = Object.assign(data, vData);}, enumerable: false}
+        });
+
         this.inBound = function (obj, offset = 0) {
             let bound = {
-                x: data.x,
-                y: data.y,
-                w: data.x + data.width,
-                h: data.y + data.height
+                x: this.x,
+                y: this.y,
+                w: this.x + this.width,
+                h: this.y + this.height
             };
             return obj.x <= bound.w + offset && obj.x >= bound.x - offset && obj.y <= bound.h + offset && obj.y >= bound.y - offset;
         };
-        this.setData = function (vData) {
-            data = Object.assign(data, vData);
-        }
     };
 };

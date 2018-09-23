@@ -3057,7 +3057,7 @@ function useColors() {
 }
 
 /**
- * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+ * Mini Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
  */
 
 exports.formatters.j = function(v) {
@@ -3200,7 +3200,7 @@ exports.names = [];
 exports.skips = [];
 
 /**
- * Map of special "%n" handling functions, for the debug "format" argument.
+ * Mini Map of special "%n" handling functions, for the debug "format" argument.
  *
  * Valid key names are a single, lowercased letter, i.e. "n".
  */

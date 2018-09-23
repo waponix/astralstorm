@@ -3,8 +3,8 @@ module.exports = () => {
         _objects: {},
         elapsed: 0,
         dimension: {
-            width: 10000,
-            height: 10000
+            width: 5000,
+            height: 5000
         },
         arrayObjects: function (socket) {
             Viewport._data = socket.viewport;

@@ -260,6 +260,9 @@ function Canvas(target, o) {
                 case 'lw': this.ctx.lineWidth = v; break;
                 case 'sld': this.ctx.setLineDash([v[0], v[1]]); break;
                 case 'gco': this.ctx.globalCompositeOperation = v; break;
+                case 'sb': this.ctx.shadowBlur = v; break;
+                case 'sc': this.ctx.shadowColor = v; break;
+                case 'so': this.ctx.shadowOffsetX = v[0]; this.ctx.shadowOffsetY = v[1]; break;
                 case 'bp': this.ctx.beginPath(); break;
                 case 'cp': this.ctx.closePath(); break;
                 case 'mt': this.ctx.moveTo(v[0], v[1]); break;

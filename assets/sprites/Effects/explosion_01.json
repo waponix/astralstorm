@@ -1,1 +1,1 @@
-[{"gco":"color-dodge"},{"ss":":color"},{"lw":":strokeSize"},{"sld":[0,0]},"bp",{"a":[0,0,":radius",0,"eq:2*Math.PI"]},"s"]
+[{"gco":"color-dodge"},{"sb": 100},{"sc": ":color"},{"so": [0, 0]},{"sld": [0, 0]},{"ss":":color"},{"lw":":strokeSize"},{"sld":[0,0]},"bp",{"a":[0,0,":radius",0,"eq:2*Math.PI"]},"s"]

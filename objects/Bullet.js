@@ -2,10 +2,10 @@ module.exports = function () {
     this.onCreate = function () {
         this.owner = null;
         this.radius = 2.5;
-        this.speed = 15;
+        this.speed = 20;
         this.sprite = new _Sprite(this.x, this.y, 'bullet_01');
-        this.sprite.vars.color = "#FFFF00";
-        this.body = new _CircleBody(this.x, this.y, 10);
+        this.sprite.vars.color = "#00FFFF";
+        this.body = new _CircleBody(this.x, this.y, 1);
         this.damage = 5;
         this.range = 700;
     };
@@ -26,10 +26,6 @@ module.exports = function () {
             player.sprite.vars.color = "#FF6600";
             player.health -= this.damage;
             setTimeout(() => player.sprite.vars.color = player.originalColor, 100);
-            destroy(this);
-        },
-        Bullet: (bullet) => {
-            destroy(bullet);
             destroy(this);
         }
     };

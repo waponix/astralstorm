@@ -85,6 +85,12 @@ module.exports = () => {
         return Math.sqrt((x * x) + (y * y));
     };
 
+    global.pointDirection = (x1, y1, x2, y2) => {
+        let x = x2 - x1;
+        let y = y2 - y1;
+        return Math.atan2(y, x) / Math.PI * 180;
+    };
+
     global.limit = (value, min, max) => {
         return Math.min(Math.max(value, min), max);
     };
@@ -141,5 +147,32 @@ module.exports = () => {
 
     global.id = () => {
         return id.generate() + ':' + uuid();
+    };
+
+    global.instancesPos = (instanceName, exceptSid = '') => {
+        if (Array.isArray(exceptSid)) exceptSid = exceptSid.join();
+        let exceptions = new RegExp(exceptSid);
+        let instances = World._objects[pluralize(instanceName)];
+        let positions = [];
+
+        for (let i in instances) {
+            if (!instances[i].sid || (instances[i].sid && !exceptions.test(instances[i].sid))) {
+                positions.push({x: instances[i].x, y: instances[i].y});
+            }
+        }
+
+        return positions;
+    };
+
+    global.runScript = (scriptName, $this) => {
+        require('../../scripts/' + scriptName).call($this);
+    };
+
+    global.lengthDirX = (len, dir) => {
+        return len * Math.cos(dir * Math.PI / 180);
+    };
+
+    global.lengthDirY = (len, dir) => {
+        return len * Math.sin(dir * Math.PI / 180);
     };
 };

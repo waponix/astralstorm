@@ -9,7 +9,16 @@ $(document).ready(function () {
     let socket = io();
 
     socket.once('assets::load', (data) => {
+        soundManager.setup({
+            debugMode: false
+        });
         window._assets = data;
+        for (let i in window._assets.audios) {
+            window._assets.audios[i] = soundManager.createSound(window._assets.audios[i]);
+        }
+        socket.on('play::audio', (audio) => {
+            window._assets.audios[audio.audio].setVolume(audio.volume).play();
+        });
     });
     socket.once('world::load', (data) => {
         window._world = data;
@@ -172,6 +181,7 @@ function random(min, max) {
 }
 
 /*Objects*/
+
 function Canvas(target, o) {
     this.elem = document.createElement('canvas');
     this.ctx = this.elem.getContext('2d');
@@ -203,10 +213,10 @@ function Canvas(target, o) {
     this.drawSprite = (object) => {
         if (!object._draw) return;
         if (!object.data) return;
-        if (!window._assets || !window._assets[object.data]) return;
+        if (!window._assets || !window._assets.sprites[object.data]) return;
         if (!object.onViewport && !this.inBound(object)) return;
         let sprite = object;
-        sprite.data = JSON.parse(window._assets[sprite.data]);
+        sprite.data = JSON.parse(window._assets.sprites[sprite.data]);
         let dataString = JSON.stringify(sprite.data);
 
         //replace the placeholders with the proper values

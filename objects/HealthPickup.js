@@ -19,6 +19,7 @@ module.exports = function () {
 
     this.onCollision = {
         Player: (player) => {
+            play('life_up.wav', this.x, this.y);
             player.health += this.effect;
             player.sprite.vars.color = '#00FF00';
             setTimeout(() => player.sprite.vars.color = player.originalColor, 100);

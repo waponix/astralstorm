@@ -54,6 +54,7 @@ module.exports = function () {
 
         this.fireRate.tick();
         if (this._input.mouse.L && this.fireRate.timedOut()) {
+            play('laser.wav', this.x, this.y);
             let bullet = createInstance('Bullet');
             bullet.owner = this;
             bullet.x = this.x + this.body.radius * Math.cos(this.direction * Math.PI / 180);
@@ -66,8 +67,9 @@ module.exports = function () {
     };
 
     this.onDestroy = function () {
+        play('explosion.wav', this.x, this.y);
         this.destroyed = true;
-        let explosion = createInstance('Explosion');
+        let explosion = createInstance('Explosion', this.x, this.y);
         explosion.x = this.x;
         explosion.y = this.y;
         explosion.sprite.vars.strokeSize = 30;

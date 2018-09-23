@@ -26,7 +26,6 @@ module.exports = () => {
     };
 
     //prepare sprites and add to _assets group
-    global._assets = {};
     deepScanSprites('assets/sprites');
 
     function deepScanSprites(path) {
@@ -36,7 +35,7 @@ module.exports = () => {
             if (fs.lstatSync(file).isDirectory()) {
                 deepScanSprites(file);
             } else if (fs.lstatSync(file).isFile()) {
-                _assets[paths[i].split('.')[0]] = fs.readFileSync(file, 'utf-8');
+                _assets.sprites[paths[i].split('.')[0]] = fs.readFileSync(file, 'utf-8');
             }
         }
     };

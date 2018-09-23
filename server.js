@@ -1,14 +1,16 @@
 let express = require('express');
 let app = express();
 let server = require('http').Server(app);
-let io = require('socket.io')(server);
 let ss = require('socket.io-stream');
 let stringStream = require('string-to-stream');
+let io = require('socket.io')(server);
+global.sockets = {};
 
 //initialize components
 require('./components/globals/init')();
 
 app.use(express.static('public'));
+app.use(express.static('assets/audios'));
 
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
@@ -68,7 +70,7 @@ io.on('connection', function (socket) {
 server.listen(3000, function () {
     console.log('listening on *:3000');
     let timestamp = Date.now();
-    let sockets = {};
+    sockets = {};
 
     setInterval(() => {
         if ($socket && $socket.then) {

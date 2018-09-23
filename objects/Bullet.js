@@ -23,6 +23,7 @@ module.exports = function () {
     this.onCollision = {
         Player: (player) => {
             if (player._id === this.owner._id) return;
+            play('hit.wav', this.x, this.y);
             player.sprite.vars.color = "#FF6600";
             player.health -= this.damage;
             setTimeout(() => player.sprite.vars.color = player.originalColor, 100);

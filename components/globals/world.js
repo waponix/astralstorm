@@ -1,6 +1,7 @@
 module.exports = () => {
     global.World = {
         _objects: {},
+        _audios: {},
         elapsed: 0,
         dimension: {
             width: 5000,
@@ -33,6 +34,7 @@ module.exports = () => {
             for (let i in arrayObjects) {
                 arrayObjects[i] = simplifyObjects(arrayObjects[i]);
             }
+
             arrayObjects = JSON.stringify(arrayObjects, null, 0);
 
             return arrayObjects;

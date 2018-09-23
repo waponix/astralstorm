@@ -70,6 +70,12 @@ module.exports = () => {
                 destroy(World._objects.Draw[i]);
             }
         }
+
+        if (World._audios) {
+            for (let i in World._audios) {
+                destroy(World._audios[i]);
+            }
+        }
     };
 
     //turn a noun into it's plural form
@@ -144,6 +150,32 @@ module.exports = () => {
         if (!World._objects.Draw) World._objects.Draw = {};
         World._objects.Draw[textObj._id] = textObj;
     };
+
+    global.play = (audio, x, y, loop = false) => {
+        for (let s in sockets) {
+            let socket = sockets[s];
+            let player = getPlayerBySocketId(socket.id);
+            if (player) {
+                let distanceFromPlayer = pointDistance(x, y, player.x, player.y);
+                let silence = distanceFromPlayer / 20;
+                let sound = {
+                    audio: audio,
+                    volume: Math.floor(100 - silence)
+                };
+                socket.emit('play::audio', sound);
+            }
+        }
+    };
+
+    function getPlayerBySocketId(sid) {
+        if (World._objects.Players) {
+            let player = Object.values(World._objects.Players).find((player) => {
+                return player.sid === sid;
+            });
+
+            return player;
+        }
+    }
 
     global.id = () => {
         return id.generate() + ':' + uuid();

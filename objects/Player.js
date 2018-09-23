@@ -16,11 +16,15 @@ module.exports = function () {
         this.sprite.angle = this.direction;
         this.originalColor = 'rgba(' + random(150, 255) + ', ' + random(150, 255) + ', ' + random(150, 255) + ')';
         this.sprite.vars.color = this.originalColor;
+        this.sprite.vars.power = 0;
         this.curRot = 0;
         this.radarRot = 0;
+        this.maxSpeed = 8;
     };
 
+    let power = 0;
     this.onDraw = function () {
+        this.sprite.vars.power = random(-20 - (this.speed * 1.5), -20 - (this.speed * 3));
         runScript('playerGUI', this);
     };
 
@@ -36,7 +40,7 @@ module.exports = function () {
 
         let distanceFromPointer = pointDistance(this.x, this.y, this._input.mouse.X, this._input.mouse.Y);
         this.speed = distanceFromPointer / 50;
-        this.speed = limit(this.speed, this.speed, 8);
+        this.speed = limit(this.speed, this.speed, this.maxSpeed);
 
         this.x = this.x + lengthDirX(this.speed, this.direction);
         this.y = this.y + lengthDirY(this.speed, this.direction);

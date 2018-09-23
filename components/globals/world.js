@@ -29,7 +29,6 @@ module.exports = () => {
                 let flag =  (obj.sid && obj.sid === socket.id) || (!obj.onViewport && Viewport.inBound(obj, 100)) || false;
                 return flag;
             });
-
             sort(arrayObjects, 'depth');
             for (let i in arrayObjects) {
                 arrayObjects[i] = simplifyObjects(arrayObjects[i]);

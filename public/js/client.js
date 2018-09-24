@@ -5,19 +5,23 @@ $(document).ready(function () {
     window._world = null;
     window._assets = null;
 
-    let game = new Canvas('#game-world', {width: $(window).width(), height: $(window).height()});
+    let game = new Canvas('#game-world', {width: 1200, height: 600});
     let socket = io();
 
+    //process loaded assets
     socket.once('assets::load', (data) => {
         soundManager.setup({
             debugMode: false
         });
         window._assets = data;
+        //load every audio resource
         for (let i in window._assets.audios) {
             window._assets.audios[i] = soundManager.createSound(window._assets.audios[i]);
         }
-        socket.on('play::audio', (audio) => {
-            window._assets.audios[audio.audio].setVolume(audio.volume).play();
+        soundManager.onready(() => {
+            socket.on('play::audio', (audio) => {
+                window._assets.audios[audio.audio].setVolume(audio.volume).play();
+            });
         });
     });
     socket.once('world::load', (data) => {
@@ -88,6 +92,7 @@ $(document).ready(function () {
 
     window._reader = null;
 
+    window._deltaTime = Date.now() / 1000;
     ss(socket).on('data::stream', (dataStream) => {
         let decoder = new TextDecoder("utf-8");
         let dataString = '';
@@ -123,6 +128,8 @@ $(document).ready(function () {
 
         if (window._reader && window._reader.then) {
             window._reader.then((data) => {
+                window._deltaTime = (tick / 1000) - window._deltaTime;
+
                 window._objects = JSON.parse(data);
 
                 if (!window._assets) return;
@@ -169,6 +176,22 @@ $(document).ready(function () {
                     //draw objects;
                     if (object.onViewport && object._type === 'text') game.draw(object);
                 }
+
+                game.drawText({
+                    x: game.elem.width - 200,
+                    y: 20,
+                    text: window._deltaTime,
+                    alpha: 1,
+                    angle: 0,
+                    color: '#FFFFFF',
+                    align: 'left',
+                    style: {
+                        size: '14px',
+                        font: 'Arial'
+                    }
+                });
+
+                window._deltaTime = tick / 1000;
             });
         }
         requestAnimationFrame(step);
@@ -184,7 +207,7 @@ function random(min, max) {
 
 function Canvas(target, o) {
     this.elem = document.createElement('canvas');
-    this.ctx = this.elem.getContext('2d');
+    this.ctx = this.elem.getContext('2d', {alpha: false});
     this.elem.width = o.width;
     this.elem.height = o.height;
     this.pan = {x: 0, y: 0};
@@ -218,6 +241,10 @@ function Canvas(target, o) {
         let sprite = object;
         sprite.data = JSON.parse(window._assets.sprites[sprite.data]);
         let dataString = JSON.stringify(sprite.data);
+
+        sprite.x = Math.floor(sprite.x);
+        sprite.y = Math.floor(sprite.y);
+        sprite.angle = Math.floor(sprite.angle);
 
         //replace the placeholders with the proper values
         if (Object.keys(sprite.vars).length) {
@@ -316,14 +343,14 @@ function Canvas(target, o) {
         this.save();
 
         let target = {
-            x: (object.x - ($(window).width() * 0.5)) + xSpeed,
-            y: (object.y - ($(window).height() * 0.5)) + ySpeed
+            x: (object.x - (this.elem.width * 0.5)) + xSpeed,
+            y: (object.y - (this.elem.height * 0.5)) + ySpeed
         };
 
         this.pan = target;
 
-        this.pan.x = Math.min(Math.max(0, this.pan.x), window._world.width - $(window).width());
-        this.pan.y = Math.min(Math.max(0, this.pan.y), window._world.height - $(window).height());
+        this.pan.x = Math.min(Math.max(0, this.pan.x), window._world.width - this.elem.width);
+        this.pan.y = Math.min(Math.max(0, this.pan.y), window._world.height - this.elem.height);
 
         window._input.mouse.X = this.pan.x + window.mouseX;
         window._input.mouse.Y = this.pan.y + window.mouseY;

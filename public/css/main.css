@@ -10,8 +10,11 @@
 }
 
 body {
-    background: #010003;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
 }
 
 canvas {

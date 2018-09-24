@@ -158,9 +158,11 @@ module.exports = () => {
             if (player) {
                 let distanceFromPlayer = pointDistance(x, y, player.x, player.y);
                 let silence = distanceFromPlayer / 20;
+                let vol = Math.floor(100 - silence);
+                if (vol <= 0) return;
                 let sound = {
                     audio: audio,
-                    volume: Math.floor(100 - silence)
+                    volume: vol
                 };
                 socket.emit('play::audio', sound);
             }

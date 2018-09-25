@@ -2,7 +2,7 @@ module.exports = function () {
     this.onCreate = function () {
         this.health = 100;
         this.destroyed = false;
-        this.fireRate = new Timer(0.02, true);
+        this.fireRate = new Timer(0.015, true);
         this.fireRate.zeroOut();
         this.depth = 10;
         this.x = random(0, World.dimension.width);
@@ -19,15 +19,16 @@ module.exports = function () {
         this.sprite.vars.power = 0;
         this.curRot = 0;
         this.radarRot = 0;
-        this.maxSpeed = 8;
+        this.maxSpeed = 7;
     };
 
     let power = 0;
     this.onDraw = function () {
-        this.sprite.vars.power = random(-20 - (this.speed * 1.5), -20 - (this.speed * 3));
+        this.sprite.vars.power = random(-20 - (this.speed * 1.2), -20 - (this.speed * 2));
         runScript('playerGUI', this);
     };
 
+    let slow = false;
     this.onStep = function () {
         if (this.health <= 0) {
             this.health = 0;
@@ -42,6 +43,16 @@ module.exports = function () {
         this.speed = distanceFromPointer / 50;
         this.speed = limit(this.speed, this.speed, this.maxSpeed);
 
+        if (this.speed < this.maxSpeed * 0.3 && slow) {
+            audioStop('boost_loop.wav');
+            audioPlay('boost_end.wav', this.x, this.y, false, {volume: 5}, this.sid);
+            if (slow) slow = false;
+        } else if (this.speed >= this.maxSpeed * 0.3) {
+            audioStop('boost_end.wav');
+            audioPlay('boost_loop.wav', this.x, this.y, true, {volume: 5}, this.sid);
+            if (!slow) slow = true;
+        }
+
         this.x = this.x + lengthDirX(this.speed, this.direction);
         this.y = this.y + lengthDirY(this.speed, this.direction);
         this.x = (this.x <= 0) ? 0 : this.x;
@@ -54,8 +65,8 @@ module.exports = function () {
 
         this.fireRate.tick();
         if (this._input.mouse.L && this.fireRate.timedOut()) {
-            play('laser.wav', this.x, this.y);
-            let bullet = createInstance('Bullet');
+            audioPlay('laser.wav', this.x, this.y);
+            let bullet = createInstance('LaserBullet');
             bullet.owner = this;
             bullet.x = this.x + this.body.radius * Math.cos(this.direction * Math.PI / 180);
             bullet.y = this.y + this.body.radius * Math.sin(this.direction * Math.PI / 180);
@@ -67,7 +78,7 @@ module.exports = function () {
     };
 
     this.onDestroy = function () {
-        play('explosion.wav', this.x, this.y);
+        audioPlay('explosion.wav', this.x, this.y);
         this.destroyed = true;
         let explosion = createInstance('Explosion', this.x, this.y);
         explosion.x = this.x;

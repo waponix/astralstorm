@@ -151,20 +151,32 @@ module.exports = () => {
         World._objects.Draw[textObj._id] = textObj;
     };
 
-    global.play = (audio, x, y, loop = false) => {
+    global.audioPlay = (audio, x, y, loop = false, o = {}, sid) => {
         for (let s in sockets) {
             let socket = sockets[s];
             let player = getPlayerBySocketId(socket.id);
             if (player) {
+                if (sid && sid !== player.sid) return;
                 let distanceFromPlayer = pointDistance(x, y, player.x, player.y);
                 let silence = distanceFromPlayer / 20;
                 let vol = Math.floor(100 - silence);
                 if (vol <= 0) return;
                 let sound = {
                     audio: audio,
-                    volume: vol
+                    volume: limit(vol, vol, o.volume || vol),
+                    loop: loop
                 };
-                socket.emit('play::audio', sound);
+                socket.emit('audio::play', sound);
+            }
+        }
+    };
+
+    global.audioStop = (audio) => {
+        for (let s in sockets) {
+            let socket = sockets[s];
+            let player = getPlayerBySocketId(socket.id);
+            if (player) {
+                socket.emit('audio::stop', audio);
             }
         }
     };

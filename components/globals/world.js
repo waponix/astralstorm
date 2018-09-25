@@ -32,7 +32,7 @@ module.exports = () => {
             });
             sort(arrayObjects, 'depth');
             for (let i in arrayObjects) {
-                arrayObjects[i] = simplifyObjects(arrayObjects[i]);
+                arrayObjects[i] = fixObject(arrayObjects[i]);
             }
 
             arrayObjects = JSON.stringify(arrayObjects, null, 0);
@@ -42,7 +42,7 @@ module.exports = () => {
     };
 
     //create a simplified version of the object
-    function simplifyObjects(object) {
+    function fixObject(object) {
         let spriteTemplate = {x: 0, y: 0, xPrevious: 0, yPrevious: 0, id: null, _id: null, vars: null,
             angle: 0, alpha: 1, data: null, offset: null, scale: {x: 1 ,y: 1}, _draw: true, _type: undefined,
             onViewport: false};

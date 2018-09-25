@@ -26,8 +26,8 @@ $(document).ready(function () {
             socket.once('world::load', (data) => {
                 _world = data;
 
-                let width = 1200;
-                let height = 600;
+                let width = 1280;
+                let height = 720;
 
                 layers.background = new Canvas('#game-world', {width: width, height: height});
                 layers.activeground = new Canvas('#game-world', {width: width, height: height, transparent: true});
@@ -187,8 +187,22 @@ $(document).ready(function () {
                     requestAnimationFrame(step);
                 };
 
-                socket.on('play::audio', (audio) => {
-                    _assets.audios[audio.audio].setVolume(audio.volume).play();
+                socket.on('audio::play', (audio) => {
+                    if (!_assets.audios[audio.audio]) return;
+                    if (audio.loop) {
+                        if (!_assets.audios[audio.audio].playState) {
+                            _assets.audios[audio.audio].setVolume(audio.volume).play({
+                                loops: 0
+                            });
+                        }
+                    } else {
+                        _assets.audios[audio.audio].setVolume(audio.volume).play();
+                    }
+                });
+
+                socket.on('audio::stop', (audio) => {
+                    if (!_assets.audios[audio]) return;
+                    if (_assets.audios[audio].playState) _assets.audios[audio].stop();
                 });
 
                 /*FUNCTIONS*/
@@ -199,6 +213,7 @@ $(document).ready(function () {
                 /*Objects*/
 
                 function Canvas(target, o) {
+                    let clearBounds = [];
                     this.elem = document.createElement('canvas');
                     this.ctx = this.elem.getContext('2d', {alpha: o.transparent || false});
                     this.elem.width = o.width;
@@ -230,6 +245,28 @@ $(document).ready(function () {
                     };
 
                     this.drawSprite = (object) => {
+                        let points = {
+                            xs: [],
+                            ys: [],
+                            addPoint: function (x, y) {
+                                this.xs.push(x);
+                                this.ys.push(y);
+                            },
+                            getBoundingBox: function () {
+                                this.xs.sort((a, b) => {return a - b;});
+                                this.ys.sort((a, b) => {return a - b;});
+                                return {
+                                    x: object.x,
+                                    y: object.y,
+                                    x1: this.xs.shift(),
+                                    y1: this.ys.shift(),
+                                    x2: this.xs.pop(),
+                                    y2: this.ys.pop(),
+                                    a: object.angle,
+                                    s: object.scale
+                                };
+                            }
+                        };
                         if (!object._draw) return;
                         if (!object.data) return;
                         if (!_assets || !_assets.sprites[object.data]) return;
@@ -270,10 +307,6 @@ $(document).ready(function () {
                         parser(sprite.data);
 
                         this.save();
-                        this.ctx.msImageSmoothingEnabled = false;
-                        this.ctx.mozImageSmoothingEnabled = false;
-                        this.ctx.webkitImageSmoothingEnabled = false;
-                        this.ctx.imageSmoothingEnabled = false;
                         this.ctx.translate(sprite.x, sprite.y);
                         this.ctx.scale(sprite.scale.x, sprite.scale.y);
                         this.ctx.rotate(sprite.angle * Math.PI / 180);
@@ -331,36 +364,44 @@ $(document).ready(function () {
                                     break;
                                 case 'mt':
                                     this.ctx.moveTo(v[0], v[1]);
+                                    points.addPoint(v[0], v[1]);
                                     break;
                                 case 'lt':
                                     this.ctx.lineTo(v[0], v[1]);
+                                    points.addPoint(v[0], v[1]);
                                     break;
                                 case 'a':
                                     this.ctx.arc(v[0], v[1], v[2], v[3], v[4], v[5]);
+                                    points.addPoint(v[2], v[2]);
                                     break;
                                 case 'at':
                                     this.ctx.arcTo(v[0], v[1], v[2], v[3], v[4]);
+                                    points.addPoint(v[0], v[1]);
+                                    points.addPoint(v[2], v[3]);
+                                    points.addPoint(v[4], v[4]);
                                     break;
                                 case 'qct':
                                     this.ctx.quadraticCurveTo(v[0], v[1], v[2], v[3]);
+                                    points.addPoint(v[0], v[1]);
+                                    points.addPoint(v[1], v[2]);
                                     break;
                                 case 'bct':
                                     this.ctx.bezierCurveTo(v[0], v[1], v[2], v[3], v[4], v[5]);
+                                    points.addPoint(v[0], v[1]);
+                                    points.addPoint(v[2], v[3]);
+                                    points.addPoint(v[4], v[5]);
                                     break;
                                 case 'r':
                                     this.ctx.rotate(v);
                                     break;
                             }
                         }
+                        clearBounds.push(points.getBoundingBox());
                         this.restore();
                     };
 
                     this.drawText = (object) => {
                         this.save();
-                        this.ctx.msImageSmoothingEnabled = false;
-                        this.ctx.mozImageSmoothingEnabled = false;
-                        this.ctx.webkitImageSmoothingEnabled = false;
-                        this.ctx.imageSmoothingEnabled = false;
                         this.ctx.translate(object.x, object.y);
                         this.ctx.rotate(object.angle);
                         this.ctx.globalAlpha = object.alpha;
@@ -372,12 +413,21 @@ $(document).ready(function () {
                     };
 
                     this.clear = function () {
-                        let square = 200;
+                        while (clearBounds.length) {
+                            let clear = clearBounds.pop();
+                            this.ctx.save();
+                            this.ctx.translate(clear.x, clear.y);
+                            this.ctx.scale(clear.s.x, clear.s.y);
+                            this.ctx.rotate(clear.a);
+                            this.ctx.clearRect(clear.x1 - 50, clear.y1 - 50, clear.x2 + 50, clear.y2 + 50);
+                            this.restore();
+                        };
+                        /*let square = 200;
                         for (let xi = 0; xi <= this.elem.width; xi += square) {
                             for (let yi = 0; yi <= this.elem.height; yi += square) {
                                 this.ctx.clearRect(this.bound.x + xi, this.bound.y + yi, square, square);
                             }
-                        }
+                        }*/
                     };
 
                     //make the viewport follow an object always call this.restore at the very end of each step
@@ -418,7 +468,10 @@ $(document).ready(function () {
 
                     this.exitPointerLock = function () {
                         document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
-                        if (document.pointerLockElement === this.elem) document.exitPointerLock();
+                        if (document.pointerLockElement === this.elem) {
+                            soundManager.stopAll();
+                            document.exitPointerLock();
+                        }
                     };
 
                     let scaleX = window.innerWidth / this.elem.width;

@@ -1,4 +1,5 @@
 module.exports = function () {
+    let collide = false;
     this.onCreate = function () {
         this.owner = null;
         this.radius = 2.5;
@@ -23,7 +24,8 @@ module.exports = function () {
     this.onCollision = {
         Player: (player) => {
             if (player._id === this.owner._id) return;
-            play('hit.wav', this.x, this.y);
+            collide = true;
+            audioPlay('hit.wav', this.x, this.y);
             player.sprite.vars.color = "#FF6600";
             player.health -= this.damage;
             setTimeout(() => player.sprite.vars.color = player.originalColor, 100);
@@ -32,8 +34,18 @@ module.exports = function () {
     };
 
     this.onDestroy = function () {
-        let explosion = createInstance('Explosion');
-        explosion.x = this.x;
-        explosion.y = this.y;
+        if (collide) {
+            let explosion = createInstance('Explosion');
+            explosion.x = this.x;
+            explosion.y = this.y;
+        } else {
+            let decay = createInstance('LaserBulletDecay');
+            decay.x = this.x;
+            decay.y = this.y;
+            decay.speed = this.speed;
+            decay.direction = this.direction;
+            decay.sprite.angle = this.direction;
+            decay.sprite.vars.color = this.sprite.vars.color;
+        }
     };
 };

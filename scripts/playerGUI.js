@@ -31,12 +31,6 @@ module.exports = function () {
             stat: stat
         }
     }, true, this.sid);
-    drawText(this.username.substr(0,10), 80, 30, {
-        size: '10px',
-        color: '#FFFFFF',
-        align: 'center',
-        font: 'Segoe UI Light'
-    }, true, this.sid);
 
     //draw username on top of player
     drawText(this.username.substr(0,10), this.x + 10, this.y - (this.body.radius + 20), {

@@ -67,8 +67,9 @@ io.on('connection', function (socket) {
     $socket = Promise.resolve(socket);
 });
 
-server.listen(1140, function () {
-    console.log('listening on *:3000');
+let port = 3000;
+server.listen(port, function () {
+    console.log('listening on port ' + port);
     let timestamp = Date.now();
     sockets = {};
 

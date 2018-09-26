@@ -45,11 +45,11 @@ module.exports = function () {
 
         if (this.speed < this.maxSpeed * 0.3 && slow) {
             audioStop('boost_loop.wav');
-            audioPlay('boost_end.wav', this.x, this.y, false, {volume: 5}, this.sid);
+            audioPlay('boost_end.wav', this.x, this.y, false, {volume: 30}, this.sid);
             if (slow) slow = false;
         } else if (this.speed >= this.maxSpeed * 0.3) {
             audioStop('boost_end.wav');
-            audioPlay('boost_loop.wav', this.x, this.y, true, {volume: 5}, this.sid);
+            audioPlay('boost_loop.wav', this.x, this.y, true, {volume: 30}, this.sid);
             if (!slow) slow = true;
         }
 

@@ -136,50 +136,47 @@ $(document).ready(function () {
                                 return obj.id === playerKey;
                             });
 
-                            if (!!main) {
-                                layers.background.follow(main);
-                                layers.activeground.follow(main);
-                            }
+                            layers.background.clear().then(() => {
+                                if (!!main) layers.background.follow(main);
+                                //draw background
+                                layers.background.ctx.strokeStyle = '#002024';
+                                layers.background.ctx.setLineDash([2, 2]);
+                                for (let i = 0; i <= _world.width; i += 100) {
+                                    layers.background.ctx.beginPath();
+                                    layers.background.ctx.moveTo(i, 0);
+                                    layers.background.ctx.lineTo(i, _world.height);
+                                    layers.background.ctx.stroke();
+                                }
+                                for (let i = 0; i <= _world.height; i += 100) {
+                                    layers.background.ctx.beginPath();
+                                    layers.background.ctx.moveTo(0, i);
+                                    layers.background.ctx.lineTo(_world.width, i);
+                                    layers.background.ctx.stroke();
+                                }
+                                layers.background.restore();
+                            });
+                            layers.activeground.clear().then(() => {
+                                if (!!main) layers.activeground.follow(main);
+                                for (let i in _objects) {
+                                    let object = _objects[i];
+                                    //draw objects;
+                                    if (!object.onViewport) layers.activeground.draw(object);
+                                }
+                                layers.activeground.restore();
 
-                            layers.background.clear(false);
-                            layers.activeground.clear();
-                            layers.foreground.clear();
-
-                            layers.background.ctx.strokeStyle = '#002024';
-                            layers.background.ctx.setLineDash([2, 2]);
-                            //draw background
-                            for (let i = 0; i <= _world.width; i += 100) {
-                                layers.background.ctx.beginPath();
-                                layers.background.ctx.moveTo(i, 0);
-                                layers.background.ctx.lineTo(i, _world.height);
-                                layers.background.ctx.stroke();
-                            }
-                            for (let i = 0; i <= _world.height; i += 100) {
-                                layers.background.ctx.beginPath();
-                                layers.background.ctx.moveTo(0, i);
-                                layers.background.ctx.lineTo(_world.width, i);
-                                layers.background.ctx.stroke();
-                            }
-
-                            for (let i in _objects) {
-                                let object = _objects[i];
-                                //draw objects;
-                                if (!object.onViewport) layers.activeground.draw(object);
-                            }
-
-                            layers.background.restore();
-                            layers.activeground.restore();
-
-                            for (let i in _objects) {
-                                let object = _objects[i];
-                                //draw objects;
-                                if (object.onViewport && object._type === 'sprite') layers.foreground.draw(object);
-                            }
-                            for (let i in _objects) {
-                                let object = _objects[i];
-                                //draw objects;
-                                if (object.onViewport && object._type === 'text') layers.foreground.draw(object);
-                            }
+                            });
+                            layers.foreground.clear().then(() => {
+                                for (let i in _objects) {
+                                    let object = _objects[i];
+                                    //draw objects;
+                                    if (object.onViewport && object._type === 'sprite') layers.foreground.draw(object);
+                                }
+                                for (let i in _objects) {
+                                    let object = _objects[i];
+                                    //draw objects;
+                                    if (object.onViewport && object._type === 'text') layers.foreground.draw(object);
+                                }
+                            });
 
                             _deltaTime = tick / 1000;
                         });
@@ -245,26 +242,55 @@ $(document).ready(function () {
                     };
 
                     this.drawSprite = (object) => {
+                        let panX = this.pan.x;
+                        let panY = this.pan.y;
                         let points = {
                             xs: [],
                             ys: [],
+                            lw: [],
+                            sb: [],
                             addPoint: function (x, y) {
                                 this.xs.push(Number(x));
                                 this.ys.push(Number(y));
-                            },
-                            getBoundingBox: function () {
+
                                 this.xs.sort((a, b) => {return a - b;});
                                 this.ys.sort((a, b) => {return a - b;});
-                                return {
-                                    x: object.x,
-                                    y: object.y,
-                                    x1: this.xs.shift(),
-                                    y1: this.ys.shift(),
+
+                                if (this.xs.length >= 2) {
+                                    let l = this.xs.shift(), g = this.xs.pop();
+                                    this.xs = [l, g];
+                                }
+
+                                if (this.ys.length >= 2) {
+                                    let l = this.ys.shift(), g = this.ys.pop();
+                                    this.ys = [l, g];
+                                }
+                            },
+                            getBoundingBox: function () {
+                                let x = (object.onViewport) ? object.x :  object.x - panX;
+                                let y = (object.onViewport) ? object.y :  object.y - panY;
+                                let allowance = [].concat(this.lw).concat(this.sb).sort((a, b) => {return a - b;}).pop() + 1;
+                                let bound = {
+                                    x: x,
+                                    y: y,
+                                    x1: this.xs.shift() * allowance,
+                                    y1: this.ys.shift() * allowance,
                                     x2: this.xs.pop(),
                                     y2: this.ys.pop(),
                                     a: object.angle * Math.PI / 180,
-                                    s: object.scale
+                                    s: object.scale,
                                 };
+
+                                bound.x2 = bound.x2 - bound.x1;
+                                bound.y2 = bound.y2 - bound.y1;
+
+                                bound.x2 = bound.x2 * allowance;
+                                bound.y2 = bound.y2 * allowance;
+
+                                if (bound.x2 < 5) bound.x2 = 5;
+                                if (bound.y2 < 5) bound.y2 = 5;
+
+                                return bound;
                             }
                         };
                         if (!object._draw) return;
@@ -275,9 +301,7 @@ $(document).ready(function () {
                         sprite.data = JSON.parse(_assets.sprites[sprite.data]);
                         let dataString = JSON.stringify(sprite.data);
 
-                        sprite.x = Math.floor(sprite.x);
-                        sprite.y = Math.floor(sprite.y);
-                        sprite.angle = Math.floor(sprite.angle);
+                        sprite.angle = object.angle;
 
                         //replace the placeholders with the proper values
                         if (Object.keys(sprite.vars).length) {
@@ -339,6 +363,7 @@ $(document).ready(function () {
                                     break;
                                 case 'lw':
                                     this.ctx.lineWidth = v;
+                                    points.lw.push(v);
                                     break;
                                 case 'sld':
                                     this.ctx.setLineDash([v[0], v[1]]);
@@ -348,6 +373,7 @@ $(document).ready(function () {
                                     break;
                                 case 'sb':
                                     this.ctx.shadowBlur = v;
+                                    points.sb.push(v);
                                     break;
                                 case 'sc':
                                     this.ctx.shadowColor = v;
@@ -372,19 +398,20 @@ $(document).ready(function () {
                                     break;
                                 case 'a':
                                     this.ctx.arc(v[0], v[1], v[2], v[3], v[4], v[5]);
-                                    points.addPoint(v[2], v[2]);
+                                    points.addPoint(v[0] - v[2], v[1] - v[2]);
+                                    points.addPoint(v[0] + v[2], v[1] + v[2]);
                                     break;
                                 case 'at':
                                     this.ctx.arcTo(v[0], v[1], v[2], v[3], v[4]);
-                                    points.addPoint(-v[4] + v[0], -v[4] + v[1]);
-                                    points.addPoint(v[4] + v[0], v[4] + v[1]);
-                                    points.addPoint(-v[4] + v[2], -v[4] + v[3]);
-                                    points.addPoint(v[4] + v[2], v[4] + v[3]);
+                                    points.addPoint(v[0] - v[4], v[1] - v[4]);
+                                    points.addPoint(v[0] + v[4], v[1] + v[4]);
+                                    points.addPoint(v[2] - v[4], v[3] - v[4]);
+                                    points.addPoint(v[2] + v[4], v[3] + v[4]);
                                     break;
                                 case 'qct':
                                     this.ctx.quadraticCurveTo(v[0], v[1], v[2], v[3]);
                                     points.addPoint(v[0], v[1]);
-                                    points.addPoint(v[1], v[2]);
+                                    points.addPoint(v[2], v[3]);
                                     break;
                                 case 'bct':
                                     this.ctx.bezierCurveTo(v[0], v[1], v[2], v[3], v[4], v[5]);
@@ -413,37 +440,42 @@ $(document).ready(function () {
                         this.restore();
                     };
 
-                    this.clear = function (partial = true) {
-                        if (partial) {
-                            while (clearBounds.length) {
-                                let clear = clearBounds.pop();
-                                this.ctx.save();
-                                this.ctx.translate(clear.x, clear.y);
-                                this.ctx.scale(clear.s.x, clear.s.y);
-                                this.ctx.rotate(clear.a);
-                                this.ctx.clearRect(-clear.x1 - 50, -clear.y1 - 50, clear.x2 + 50, clear.y2 + 50);
+                    this.clear = function () {
+                        return new Promise((res) => {
+                            if (clearBounds.length) {
+                                while (clearBounds.length) {
+                                    let clear = clearBounds.pop();
+                                    this.ctx.save();
+                                    this.ctx.translate(clear.x, clear.y);
+                                    this.ctx.scale(clear.s.x, clear.s.y);
+                                    this.ctx.rotate(clear.a);
+                                    this.ctx.clearRect(clear.x1, clear.y1, clear.x2, clear.y2);
+                                    this.ctx.fill();
+                                    this.ctx.stroke();
+                                    this.restore();
+                                }
+                            } else {
+                                let square = 200;
+                                this.save();
+                                for (let xi = 0; xi <= this.elem.width; xi += square) {
+                                    for (let yi = 0; yi <= this.elem.height; yi += square) {
+                                        this.ctx.clearRect(xi, yi, square, square);
+                                    }
+                                }
                                 this.restore();
                             }
-                        } else {
-                            let square = 200;
-                            for (let xi = 0; xi <= this.elem.width; xi += square) {
-                                for (let yi = 0; yi <= this.elem.height; yi += square) {
-                                    this.ctx.clearRect(this.bound.x + xi, this.bound.y + yi, square, square);
-                                }
-                            }
-                        }
+                            res();
+                        });
                     };
 
                     //make the viewport follow an object always call this.restore at the very end of each step
                     this.follow = function (object) {
-                        let xSpeed = object.xPrevious - object.x;
-                        let ySpeed = object.yPrevious - object.y;
 
                         this.save();
 
                         let target = {
-                            x: (object.x - (this.elem.width * 0.5)) + xSpeed,
-                            y: (object.y - (this.elem.height * 0.5)) + ySpeed
+                            x: (object.x - (this.elem.width * 0.5)),
+                            y: (object.y - (this.elem.height * 0.5))
                         };
 
                         this.pan = target;

@@ -141,7 +141,7 @@ $(document).ready(function () {
                                 layers.activeground.follow(main);
                             }
 
-                            layers.background.clear();
+                            layers.background.clear(false);
                             layers.activeground.clear();
                             layers.foreground.clear();
 
@@ -249,8 +249,8 @@ $(document).ready(function () {
                             xs: [],
                             ys: [],
                             addPoint: function (x, y) {
-                                this.xs.push(x);
-                                this.ys.push(y);
+                                this.xs.push(Number(x));
+                                this.ys.push(Number(y));
                             },
                             getBoundingBox: function () {
                                 this.xs.sort((a, b) => {return a - b;});
@@ -262,7 +262,7 @@ $(document).ready(function () {
                                     y1: this.ys.shift(),
                                     x2: this.xs.pop(),
                                     y2: this.ys.pop(),
-                                    a: object.angle,
+                                    a: object.angle * Math.PI / 180,
                                     s: object.scale
                                 };
                             }
@@ -376,9 +376,10 @@ $(document).ready(function () {
                                     break;
                                 case 'at':
                                     this.ctx.arcTo(v[0], v[1], v[2], v[3], v[4]);
-                                    points.addPoint(v[0], v[1]);
-                                    points.addPoint(v[2], v[3]);
-                                    points.addPoint(v[4], v[4]);
+                                    points.addPoint(-v[4] + v[0], -v[4] + v[1]);
+                                    points.addPoint(v[4] + v[0], v[4] + v[1]);
+                                    points.addPoint(-v[4] + v[2], -v[4] + v[3]);
+                                    points.addPoint(v[4] + v[2], v[4] + v[3]);
                                     break;
                                 case 'qct':
                                     this.ctx.quadraticCurveTo(v[0], v[1], v[2], v[3]);
@@ -412,22 +413,25 @@ $(document).ready(function () {
                         this.restore();
                     };
 
-                    this.clear = function () {
-                        while (clearBounds.length) {
-                            let clear = clearBounds.pop();
-                            this.ctx.save();
-                            this.ctx.translate(clear.x, clear.y);
-                            this.ctx.scale(clear.s.x, clear.s.y);
-                            this.ctx.rotate(clear.a);
-                            this.ctx.clearRect(clear.x1 - 50, clear.y1 - 50, clear.x2 + 50, clear.y2 + 50);
-                            this.restore();
-                        };
-                        /*let square = 200;
-                        for (let xi = 0; xi <= this.elem.width; xi += square) {
-                            for (let yi = 0; yi <= this.elem.height; yi += square) {
-                                this.ctx.clearRect(this.bound.x + xi, this.bound.y + yi, square, square);
+                    this.clear = function (partial = true) {
+                        if (partial) {
+                            while (clearBounds.length) {
+                                let clear = clearBounds.pop();
+                                this.ctx.save();
+                                this.ctx.translate(clear.x, clear.y);
+                                this.ctx.scale(clear.s.x, clear.s.y);
+                                this.ctx.rotate(clear.a);
+                                this.ctx.clearRect(-clear.x1 - 50, -clear.y1 - 50, clear.x2 + 50, clear.y2 + 50);
+                                this.restore();
                             }
-                        }*/
+                        } else {
+                            let square = 200;
+                            for (let xi = 0; xi <= this.elem.width; xi += square) {
+                                for (let yi = 0; yi <= this.elem.height; yi += square) {
+                                    this.ctx.clearRect(this.bound.x + xi, this.bound.y + yi, square, square);
+                                }
+                            }
+                        }
                     };
 
                     //make the viewport follow an object always call this.restore at the very end of each step
